@@ -1,5 +1,7 @@
+import ProChatbot from "./ProChatbot";
+
 function App() {
-  return <h1>Bano Qabil Dashboard</h1>;
+  return <ProChatbot />;
 }
 
 export default App;
