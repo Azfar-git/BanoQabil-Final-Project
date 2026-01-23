@@ -1,6 +1,5 @@
-// functions/chat.js
 import fetch from "node-fetch";
-import contextData from "../../context.json"; // path may vary
+import contextData from "../../context.json";
 
 const MODEL = "meta-llama/Llama-3.1-8B-Instruct";
 

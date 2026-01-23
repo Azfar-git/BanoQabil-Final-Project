@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import ReactMarkdown from "react-markdown";
 
@@ -16,14 +17,21 @@ export default function ProChatbot() {
   const inputRef = useRef(null);
   const messagesEndRef = useRef(null);
 
-  const WHATSAPP_URL = "https://wa.me/03178226242";
+  const WHATSAPP_URL = "https://wa.me/923178226242";
 
-  // Scroll auto
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // Notification timer
+  useEffect(() => {
+    if (isOpen) {
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+        inputRef.current?.focus();
+      }, 100);
+    }
+  }, [isOpen]);
+
   useEffect(() => {
     const timer = setInterval(() => {
       if (!isOpen) {
@@ -50,18 +58,17 @@ export default function ProChatbot() {
       });
       const data = await res.json();
       setMessages((prev) => [...prev, { sender: "ai", text: data.reply }]);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
           sender: "ai",
-          text: "Sorry, I’m having trouble connecting right now. Would you like to contact our support team on WhatsApp?",
+          text: `Sorry, I’m having trouble connecting. Would you like to [Contact Support on WhatsApp](${WHATSAPP_URL})?`,
         },
       ]);
     } finally {
       setLoading(false);
-      inputRef.current?.focus();
+      setTimeout(() => inputRef.current?.focus(), 100);
     }
   };
 
@@ -74,128 +81,111 @@ export default function ProChatbot() {
 
   return (
     <div className="fixed bottom-6 right-6 z-50 font-sans flex flex-col items-end">
-      {/* Floating Button Container */}
-      <div className="relative">
-        {/* Notification outside button */}
-        <AnimatePresence>
-          {showNotification && !isOpen && (
-            <motion.div
-              initial={{ opacity: 0, x: 10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 10 }}
-              className="absolute -left-28 top-1/2 -translate-y-1/2 bg-white text-blue-600 text-[10px] font-semibold rounded-full px-2 py-1 shadow-lg select-none"
-            >
-              Need help?
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Main Floating Button */}
-        {!isOpen && (
-          <motion.button
-            onClick={() => setIsOpen(true)}
-            whileHover={{ scale: 1.2, boxShadow: "0 0 30px #7C3AEDAA" }}
-            whileTap={{ scale: 0.95 }}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 w-16 h-16 rounded-full shadow-xl flex items-center justify-center cursor-pointer border-2 border-white relative"
+      <AnimatePresence>
+        {showNotification && !isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 10, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 5, scale: 0.9 }}
+            className="mb-3 bg-white text-blue-600 text-[12px] font-bold rounded-2xl px-4 py-2 shadow-2xl border border-blue-50 mr-2"
           >
-            {/* Original Robot SVG */}
-            <svg
-              width="32px"
-              height="32px"
-              viewBox="0 0 24 24"
-              fill="white"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M9 15C8.44771 15 8 15.4477 8 16C8 16.5523 8.44771 17 9 17C9.55229 17 10 16.5523 10 16C10 15.4477 9.55229 15 9 15Z"
-                fill="white"
-              />
-              <path
-                d="M14 16C14 15.4477 14.4477 15 15 15C15.5523 15 16 15.4477 16 16C16 16.5523 15.5523 17 15 17C14.4477 17 14 16.5523 14 16Z"
-                fill="white"
-              />
-              <path
-                fillRule="evenodd"
-                clipRule="evenodd"
-                d="M12 1C10.8954 1 10 1.89543 10 3C10 3.74028 10.4022 4.38663 11 4.73244V7H6C4.34315 7 3 8.34315 3 10V20C3 21.6569 4.34315 23 6 23H18C19.6569 23 21 21.6569 21 20V10C21 8.34315 19.6569 7 18 7H13V4.73244C13.5978 4.38663 14 3.74028 14 3C14 1.89543 13.1046 1 12 1ZM5 10C5 9.44772 5.44772 9 6 9H7.38197L8.82918 11.8944C9.16796 12.572 9.86049 13 10.618 13H13.382C14.1395 13 14.832 12.572 15.1708 11.8944L16.618 9H18C18.5523 9 19 9.44772 19 10V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V10ZM13.382 11L14.382 9H9.61803L10.618 11H13.382Z"
-                fill="white"
-              />
-              <path
-                d="M1 14C0.447715 14 0 14.4477 0 15V17C0 17.5523 0.447715 18 1 18C1.55228 18 2 17.5523 2 17V15C2 14.4477 1.55228 14 1 14Z"
-                fill="white"
-              />
-              <path
-                d="M22 15C22 14.4477 22.4477 14 23 14C23.5523 14 24 14.4477 24 15V17C24 17.5523 23.5523 18 23 18C22.4477 18 22 17.5523 22 17V15Z"
-                fill="white"
-              />
-            </svg>
-          </motion.button>
+            Need help? ✋
+          </motion.div>
         )}
-      </div>
+      </AnimatePresence>
 
-      {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 50, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 50, scale: 0.95 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="w-[380px] h-[560px] bg-white rounded-3xl shadow-2xl flex flex-col overflow-hidden border-2 border-blue-600 mt-4"
+            initial={{
+              opacity: 0,
+              scale: 0.7,
+              y: 50,
+              transformOrigin: "bottom right",
+            }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{
+              opacity: 0,
+              scale: 0.7,
+              y: 50,
+              transition: { duration: 0.2 },
+            }}
+            transition={{ type: "spring", stiffness: 260, damping: 25 }}
+            className="w-[340px] h-[500px] bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden border border-gray-100 mb-4"
           >
-            {/* Header */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-3 flex justify-between items-center rounded-t-3xl font-montserrat select-none">
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-4 flex justify-between items-center">
               <div>
-                <div className="font-bold leading-tight">BanoQabil AI</div>
-                <div className="text-xs opacity-90">
-                  Official Program Assistant
+                <div className="font-bold text-[15px] leading-none">
+                  BanoQabil AI
+                </div>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span className="text-[10px] opacity-90 uppercase tracking-widest font-semibold">
+                    Online Assistant
+                  </span>
                 </div>
               </div>
-              <motion.button
+              <button
                 onClick={() => setIsOpen(false)}
-                whileHover={{ rotate: 15, scale: 1.2 }}
-                className="text-lg transition-transform"
+                className="bg-white/10 hover:bg-white/20 p-1.5 rounded-full transition-colors"
               >
-                ✕
-              </motion.button>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="3"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50">
+            <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[#f9fafb]">
               {messages.map((msg, i) => (
                 <motion.div
                   key={i}
-                  initial={{ opacity: 0, y: 8 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                  className={`max-w-[82%] px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm font-inter ${
-                    msg.sender === "user"
-                      ? "ml-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white"
-                      : "bg-white text-gray-900"
-                  }`}
+                  className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                 >
-                  <ReactMarkdown
-                    components={{
-                      p: ({ children }) => <span>{children}</span>,
-                      li: ({ children }) => (
-                        <li className="ml-4 list-disc">{children}</li>
-                      ),
-                      strong: ({ children }) => (
-                        <strong className="font-semibold text-blue-600">
-                          {children}
-                        </strong>
-                      ),
-                    }}
+                  <div
+                    className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-[13px] shadow-sm ${
+                      msg.sender === "user"
+                        ? "bg-blue-600 text-white rounded-br-none"
+                        : "bg-white text-gray-800 rounded-bl-none border border-gray-100"
+                    }`}
                   >
-                    {msg.text}
-                  </ReactMarkdown>
+                    <ReactMarkdown
+                      components={{
+                        p: ({ children }) => (
+                          <p className="m-0 leading-relaxed">{children}</p>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-bold text-blue-600">
+                            {children}
+                          </strong>
+                        ),
+                        a: ({ children, href }) => (
+                          <a
+                            href={href}
+                            target="_blank"
+                            className="underline font-bold text-inherit"
+                          >
+                            {children}
+                          </a>
+                        ),
+                      }}
+                    >
+                      {msg.text}
+                    </ReactMarkdown>
+                  </div>
                 </motion.div>
               ))}
-
               {loading && (
-                <div className="max-w-[60%] px-4 py-2 rounded-2xl bg-white shadow-sm text-gray-500 text-sm flex items-center gap-2 font-inter">
-                  <span>Typing</span>
-                  <div className="flex gap-1">
+                <div className="flex justify-start">
+                  <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-none flex gap-1.5 shadow-sm">
                     <span className="dot" />
                     <span className="dot delay-1" />
                     <span className="dot delay-2" />
@@ -205,44 +195,84 @@ export default function ProChatbot() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input */}
-            <div className="p-3 border-t bg-white flex gap-2">
+            <div className="p-3 bg-white border-t border-gray-100 flex gap-2 items-center">
               <textarea
                 ref={inputRef}
+                rows="1"
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
-                disabled={loading}
-                placeholder="Ask about BanoQabil.pk..."
-                className="flex-1 border rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600 disabled:opacity-60 resize-none h-10 font-inter"
+                placeholder="Ask me anything..."
+                className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-2 text-[13px] focus:ring-2 focus:ring-blue-500/20 outline-none resize-none"
               />
-              <motion.button
+              <button
                 onClick={sendMessage}
-                whileHover={{ scale: 1.1, rotate: [0, 2, -2, 0] }}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 rounded-full text-sm font-inter hover:shadow-lg"
+                className="bg-blue-600 text-white p-2.5 rounded-xl hover:bg-blue-700 active:scale-95 transition-all shadow-md"
               >
-                Send
-              </motion.button>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Typing dots */}
+      {!isOpen && (
+        <motion.button
+          layoutId="chat-toggle"
+          onClick={() => setIsOpen(true)}
+          whileHover={{ scale: 1.05, rotate: 5 }}
+          whileTap={{ scale: 0.95 }}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center cursor-pointer border-2 border-white"
+        >
+          <svg
+            width="32px"
+            height="32px"
+            viewBox="0 0 24 24"
+            fill="white"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M9 15C8.44771 15 8 15.4477 8 16C8 16.5523 8.44771 17 9 17C9.55229 17 10 16.5523 10 16C10 15.4477 9.55229 15 9 15Z"
+              fill="white"
+            />
+            <path
+              d="M14 16C14 15.4477 14.4477 15 15 15C15.5523 15 16 15.4477 16 16C16 16.5523 15.5523 17 15 17C14.4477 17 14 16.5523 14 16Z"
+              fill="white"
+            />
+            <path
+              fillRule="evenodd"
+              clipRule="evenodd"
+              d="M12 1C10.8954 1 10 1.89543 10 3C10 3.74028 10.4022 4.38663 11 4.73244V7H6C4.34315 7 3 8.34315 3 10V20C3 21.6569 4.34315 23 6 23H18C19.6569 23 21 21.6569 21 20V10C21 8.34315 19.6569 7 18 7H13V4.73244C13.5978 4.38663 14 3.74028 14 3C14 1.89543 13.1046 1 12 1ZM5 10C5 9.44772 5.44772 9 6 9H7.38197L8.82918 11.8944C9.16796 12.572 9.86049 13 10.618 13H13.382C14.1395 13 14.832 12.572 15.1708 11.8944L16.618 9H18C18.5523 9 19 9.44772 19 10V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V10ZM13.382 11L14.382 9H9.61803L10.618 11H13.382Z"
+              fill="white"
+            />
+            <path
+              d="M1 14C0.447715 14 0 14.4477 0 15V17C0 17.5523 0.447715 18 1 18C1.55228 18 2 17.5523 2 17V15C2 14.4477 1.55228 14 1 14Z"
+              fill="white"
+            />
+            <path
+              d="M22 15C22 14.4477 22.4477 14 23 14C23.5523 14 24 14.4477 24 15V17C24 17.5523 23.5523 18 23 18C22.4477 18 22 17.5523 22 17V15Z"
+              fill="white"
+            />
+          </svg>
+        </motion.button>
+      )}
+
       <style>{`
-        .dot {
-          width: 6px;
-          height: 6px;
-          background: #2563EB;
-          border-radius: 50%;
-          animation: bounce-dot 1.4s infinite both;
-        }
-        .delay-1 { animation-delay: .2s }
-        .delay-2 { animation-delay: .4s }
-        @keyframes bounce-dot {
-          0%, 100% { transform: translateY(0); opacity: 0.3 }
-          50% { transform: translateY(-6px); opacity: 1 }
-        }
+        .dot { width: 5px; height: 5px; background: #2563EB; border-radius: 50%; animation: dot-bounce 1.4s infinite ease-in-out both; }
+        .delay-1 { animation-delay: 0.2s } .delay-2 { animation-delay: 0.4s }
+        @keyframes dot-bounce { 0%, 80%, 100% { transform: scale(0); opacity: 0.3 } 40% { transform: scale(1); opacity: 1 } }
       `}</style>
     </div>
   );
