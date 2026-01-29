@@ -1,115 +1,70 @@
-## Firebase Integration
+# Getting Started with Create React App
 
-- Firebase Authentication integrated (Email/Password)
-- Firestore database connected
-- Role-based user system implemented
-- Roles supported:
-  - admin
-  - supervisor
-  - teacher
-  - student
-  - user
-- Users are created by admin with assigned roles
+This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-## BanoQabil Website Theme
+## Available Scripts
 
-**1. MAIN COLORS**
+In the project directory, you can run:
 
-**Primary Colors**
-/* Blue to Purple Gradient - MAIN COLOR */
-Background: linear-gradient(to right, #2563EB, #7C3AED)
+### `npm start`
 
-/* Individual Colors */
-Blue: #2563EB    (rgb(37, 99, 235))
-Purple: #7C3AED  (rgb(124, 58, 237))
+Runs the app in the development mode.\
+Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
 
-**Background Colors**
-Light Mode: White background (#FFFFFF)
-Dark Mode: Dark gray background (#111827)
-Cards: Light gray (#F3F4F6) in light mode
+The page will reload when you make changes.\
+You may also see any lint errors in the console.
 
-**Text Colors**
-Headings: Dark gray (#1F2937)
-Body Text: Gray (#4B5563)
-White Text: On blue/purple backgrounds
+### `npm test`
 
-**2. FONTS (Only 2 Fonts)**
+Launches the test runner in the interactive watch mode.\
+See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-/* For ALL Headings (h1, h2, h3, h4) */
-font-family: 'Montserrat', sans-serif;
-font-weight: bold;
+### `npm run build`
 
-/* For ALL Body Text (paragraphs, buttons) */
-font-family: 'Inter', sans-serif;
-font-weight: normal;
+Builds the app for production to the `build` folder.\
+It correctly bundles React in production mode and optimizes the build for the best performance.
 
-**3. BUTTONS**
+The build is minified and the filenames include the hashes.\
+Your app is ready to be deployed!
 
-**Primary Button (Main Action)**
-className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:opacity-90"
+See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-**Secondary Button (Less Important)**
-className="bg-gray-100 text-gray-800 py-3 px-6 rounded-lg font-medium border border-gray-300 hover:bg-gray-200"
+### `npm run eject`
 
-**Dark Mode Buttons**
-// Just add "dark:" before colors
-className="dark:bg-gray-800 dark:text-white dark:border-gray-700"
+**Note: this is a one-way operation. Once you `eject`, you can't go back!**
 
-**4. CARDS (All Cards Should Look Like This)**
+If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-// Standard Card
-className="bg-white rounded-xl p-6 shadow-lg"
+Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
 
-// Card with hover effect
-className="bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow"
+You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
 
-// Dark mode card
-className="dark:bg-gray-800 dark:text-white"
+## Learn More
 
-**5. SPACING (Keep Consistent)**
+You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
-/* Between Sections */
-margin-bottom: 3rem  (use mb-12 in Tailwind)
+To learn React, check out the [React documentation](https://reactjs.org/).
 
-/* Between Cards */
-gap: 2rem  (use gap-8 in Tailwind)
+### Code Splitting
 
-/* Inside Cards */
-padding: 1.5rem  (use p-6 in Tailwind)
+This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
 
-/* Container Width */
-max-width: 80rem  (use max-w-7xl in Tailwind)
-center it with: mx-auto
+### Analyzing the Bundle Size
 
-**6. RESPONSIVE RULES**
+This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
 
-// Mobile (< 768px): 1 column
-className="grid grid-cols-1"
+### Making a Progressive Web App
 
-// Tablet (768px+): 2 columns  
-className="md:grid-cols-2"
+This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
 
-// Desktop (1024px+): 3 columns
-className="lg:grid-cols-3"
+### Advanced Configuration
 
-// Example for course cards:
-className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
 
-**7. DARK MODE - Simple Rule**
+### Deployment
 
-// Light colors first, then dark:
-className="bg-white text-gray-900 dark:bg-gray-900 dark:text-white"
+This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
 
-// Complete example for a card:
-className="bg-white rounded-xl p-6 shadow-lg dark:bg-gray-800 dark:text-white"
+### `npm run build` fails to minify
 
-**8. SPECIAL EFFECTS (Use Sparingly)**
-
-// Gradient text (for important headings)
-className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
-
-// Hover effect on cards
-className="hover:scale-105 transition-transform duration-300"
-
-// Shadow on hover
-className="hover:shadow-xl transition-shadow duration-300"
+This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
