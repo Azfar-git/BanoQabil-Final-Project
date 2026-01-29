@@ -1,0 +1,120 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ================= BASE ================= */
+@layer base {
+  :root {
+    --primary: #2563EB;
+    --primary-purple: #7C3AED;
+    --secondary: #4B5563;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --error: #ef4444;
+    --background-light: #FFFFFF;
+    --background-dark: #111827;
+    --card-light: #F3F4F6;
+    --foreground: #1F2937;
+  }
+
+  .dark {
+    --primary: #2563EB;
+    --primary-purple: #7C3AED;
+    --secondary: #9ca3af;
+    --success: #34d399;
+    --warning: #fbbf24;
+    --error: #f87171;
+    --background-light: #111827;
+    --background-dark: #111827;
+    --foreground: #f9fafb;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', sans-serif;
+    @apply font-bold tracking-tight;
+  }
+
+  code, pre {
+    font-family: 'Monaco', 'Courier New', monospace;
+  }
+
+  /* Primary Button */
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 px-6 rounded-lg font-medium hover:opacity-90 transition-opacity;
+  }
+
+  /* Secondary Button */
+  .btn-secondary {
+    @apply bg-gray-100 text-gray-800 py-3 px-6 rounded-lg font-medium border border-gray-300 hover:bg-gray-200 transition-colors dark:bg-gray-800 dark:text-white dark:border-gray-700 dark:hover:bg-gray-700;
+  }
+
+  /* Standard Card */
+  .card-standard {
+    @apply bg-white rounded-xl p-6 shadow-lg dark:bg-gray-800 dark:text-white;
+  }
+
+  /* Card with Hover */
+  .card-hover {
+    @apply bg-white rounded-xl p-6 shadow-lg hover:shadow-xl transition-shadow dark:bg-gray-800 dark:text-white hover:scale-105 transition-transform duration-300;
+  }
+}
+
+/* ================= COMPONENTS ================= */
+@layer components {
+  .glass-card {
+    @apply bg-white/80 dark:bg-gray-800/80 backdrop-blur-lg border border-gray-200/50 dark:border-gray-700/50;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-90 text-white px-6 py-3 rounded-xl font-medium transition-all
+    focus:ring-4 focus:ring-blue-400/30 active:scale-95 flex items-center gap-2;
+  }
+
+  .input-primary {
+    @apply w-full px-4 py-3 bg-white dark:bg-gray-800 border-2 border-gray-300 dark:border-gray-600
+    rounded-xl focus:border-blue-600 focus:ring-4 focus:ring-blue-400/30 outline-none;
+  }
+}
+
+/* ================= UTILITIES ================= */
+@layer utilities {
+  .text-gradient-primary {
+    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+  }
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ================= PRINT ================= */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}

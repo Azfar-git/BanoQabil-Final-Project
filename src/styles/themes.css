@@ -1,0 +1,11 @@
+/* 
+  Theme Configuration
+  
+  This file is intentionally minimal. Theme configuration is handled by:
+  - src/theme.js - Material UI theme
+  - tailwind.config.js - Tailwind CSS theme
+  - src/styles/index.css - Tailwind utilities and custom styles
+  
+  All theme colors, typography, and styling is configured in those files.
+  No CSS definitions needed here.
+*/
