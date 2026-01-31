@@ -7,11 +7,11 @@
   {
     "id": 2,
     "title": "Impact: Students Trained",
-    "text": "Bano Qabil has trained over 75,000 students through its programs, empowering them with technology and career-ready skills.”"
+    "text": "Bano Qabil has trained over 75,000 students through its programs, empowering them with technology and career-ready skills."
   },
   {
     "id": 3,
-    "title": "Impact: Active Facilities",
+    "title": "Impact: Active Facilities / Campuses",
     "text": "Bano Qabil operates more than 50 active training facilities to make education accessible across regions of Pakistan."
   },
   {
@@ -119,16 +119,8 @@
     "title": "Campus: Escuela Schooling System",
     "text": "Escuela Schooling System Campus – Bahadurabad, Karachi."
   },
-  {
-    "id": 25,
-    "title": "Campus: Garden",
-    "text": "Garden Campus – Karachi."
-  },
-  {
-    "id": 26,
-    "title": "Campus: Gulberg",
-    "text": "Gulberg Campus – Karachi."
-  },
+  { "id": 25, "title": "Campus: Garden", "text": "Garden Campus – Karachi." },
+  { "id": 26, "title": "Campus: Gulberg", "text": "Gulberg Campus – Karachi." },
   {
     "id": 27,
     "title": "Campus: Harmain School PECHS-6",
@@ -191,13 +183,13 @@
   },
   {
     "id": 39,
-    "title": "Campus: Umer‑e‑Farooq Masjid PIA Society",
-    "text": "Umer‑e‑Farooq Masjid Campus – PIA Society, Jauhar, Karachi."
+    "title": "Campus: Umer-e-Farooq Masjid PIA Society",
+    "text": "Umer-e-Farooq Masjid Campus – PIA Society, Jauhar, Karachi."
   },
   {
     "id": 40,
     "title": "Campus: Etawa",
-    "text": "Etawa Campus – Gulshan‑e‑Maymar, Karachi."
+    "text": "Etawa Campus – Gulshan-e-Maymar, Karachi."
   },
   {
     "id": 41,
@@ -211,8 +203,8 @@
   },
   {
     "id": 43,
-    "title": "Campus: Gulshan‑e‑Hadeed",
-    "text": "Gulshan‑e‑Hadeed Campus – Karachi."
+    "title": "Campus: Gulshan-e-Hadeed",
+    "text": "Gulshan-e-Hadeed Campus – Karachi."
   },
   {
     "id": 44,
@@ -227,7 +219,7 @@
   {
     "id": 46,
     "title": "Campus: Sherwani Suites",
-    "text": "Sherwani Suites Campus – Gulshan‑e‑Maymar, Karachi."
+    "text": "Sherwani Suites Campus – Gulshan-e-Maymar, Karachi."
   },
   {
     "id": 47,
@@ -239,7 +231,6 @@
     "title": "Campus: SKIT Keamari",
     "text": "SKIT – Keamari Campus – Karachi."
   },
-
   {
     "id": 49,
     "title": "Founder & Patron-in-Chief",
@@ -270,7 +261,6 @@
     "title": "Inclusivity & Support",
     "text": "The program actively supports women and underprivileged students, providing resources, mentorship, and hands-on project experience."
   },
-
   {
     "id": 55,
     "title": "Partnerships & Collaborations",
@@ -280,5 +270,75 @@
     "id": 56,
     "title": "Future Plans",
     "text": "Bano Qabil aims to expand its reach, introduce new courses, and strengthen industry connections to further empower Pakistan's youth."
+  },
+  {
+    "id": 57,
+    "title": "Guidance: Choosing a Course",
+    "text": "Students should choose a course based on their interest: Web Development for those who love building apps; Digital Marketing for creative communicators; and Cybersecurity for those interested in data protection."
+  },
+  {
+    "id": 58,
+    "title": "Guidance: Career Growth",
+    "text": "Bano Qabil recommends students utilize the dedicated Job Portal and Incubation Centres immediately after certification to build a professional portfolio and find employment."
+  },
+  {
+    "id": 59,
+    "title": "Guidance: Learning Strategy",
+    "text": "Students are advised to maintain 80% attendance and participate in hands-on projects at the incubation centres to ensure international certification success."
+  },
+  {
+    "id": 60,
+    "title": "Guidance: Python & AI Path",
+    "text": "For students interested in data and automation, the Python and AI courses offer a roadmap toward becoming a data scientist or backend developer."
+  },
+  {
+    "id": 61,
+    "title": "Guidance: Graphic Design Path",
+    "text": "Creative students are encouraged to take Graphic Design and UI/UX courses to enter the creative industry as freelance designers or brand experts."
+  },
+  {
+    "id": 62,
+    "title": "Guidance: Freelancing Success",
+    "text": "Bano Qabil mentors advise students to create profiles on Fiverr and Upwork while still in training to apply their skills in real-time."
+  },
+  {
+    "id": 63,
+    "title": "Guidance: Networking",
+    "text": "Graduates should attend Bano Qabil job fairs and networking events at Idara Noor-e-Haq to meet industry leaders face-to-face."
+  },
+  {
+    "id": 64,
+    "title": "Guidance: Mobile App Dev",
+    "text": "Students fascinated by smartphones should focus on Flutter or React Native courses to build cross-platform mobile applications."
+  },
+  {
+    "id": 65,
+    "title": "Guidance: E-commerce Path",
+    "text": "The Amazon and Shopify courses are ideal for students wanting to start their own online businesses or manage global storefronts."
+  },
+  {
+    "id": 66,
+    "title": "Guidance: English Proficiency",
+    "text": "Bano Qabil offers English Language courses because communication is the most critical skill for closing deals with international clients."
+  },
+  {
+    "id": 67,
+    "title": "Campus: Centralized Support",
+    "text": "Students at any campus can visit the Head Office at Quaideen Colony for advanced career counseling and certification issues."
+  },
+  {
+    "id": 68,
+    "title": "Impact: Gender Diversity",
+    "text": "Special batches for women are organized at various campuses to ensure a safe and empowering learning environment for sisters."
+  },
+  {
+    "id": 69,
+    "title": "Impact: Freelance Earnings",
+    "text": "Many Bano Qabil graduates now earn between $300 to $1000 per month as freelancers, contributing to Pakistan's digital economy."
+  },
+  {
+    "id": 70,
+    "title": "Guidance: Soft Skills",
+    "text": "Beyond technical skills, the program provides training in time management, professional ethics, and interview preparation."
   }
 ]

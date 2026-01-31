@@ -3,17 +3,19 @@ import contextData from "../../context.json";
 
 const MODEL = "meta-llama/Llama-3.1-8B-Instruct";
 
-const buildSystemPrompt = () => {
+const buildSystemPrompt = (role) => {
+  const isStudent = role === "student";
+
   let prompt = `
 You are BanoQabil AI, the official informational assistant for BanoQabil.pk.
+${isStudent ? "CURRENT USER STATUS: REGISTERED STUDENT. Act as a supportive mentor and career counselor." : "CURRENT USER STATUS: GUEST. Act as a professional informational assistant."}
 
 RULES:
 - ONLY use information explicitly in the CONTEXT below.
 - NO prior knowledge, guesses, or assumptions.
-- If the user greets you with "hi", "hello", "hey", etc., respond with a friendly greeting first, THEN ask if they want to know about courses, campuses, admissions, or programs.
-- If the user's question is unclear, short, or vague (like "hmm", "ok"), reply politely: "I’m here to help with courses, campuses, admissions, or programs. Could you please ask about one of these?"
+${isStudent ? "- If a student asks for advice, use the 'Guidance' context to help them choose a career path." : "- If the user greets you, respond friendly then ask if they want to know about courses, campuses, or admissions."}
 - If the answer is NOT in CONTEXT, reply EXACTLY:
-  "I couldn't find an exact answer to your question. Would you like to contact our support team on WhatsApp for personalized assistance?"
+  "I couldn't find an exact answer to your question. Would you like to [Contact Support on WhatsApp](https://wa.me/923178226242) for personalized assistance?"
 
 FORMAT:
 - Markdown bullets only (max 6 bullets, one sentence each)
@@ -39,17 +41,18 @@ INSTRUCTIONS:
 export async function handler(event) {
   try {
     const body = JSON.parse(event.body);
-    const message = body.message;
+    const { message, role } = body; 
 
     if (!message) {
       return { statusCode: 400, body: JSON.stringify({ reply: "No message provided." }) };
     }
 
-    const systemPrompt = buildSystemPrompt();
+    const systemPrompt = buildSystemPrompt(role);
 
     const response = await fetch("https://router.huggingface.co/v1/chat/completions", {
       method: "POST",
       headers: {
+        //eslint-disable-next-line no-undef
         Authorization: `Bearer ${process.env.HF_TOKEN}`,
         "Content-Type": "application/json",
       },
@@ -65,9 +68,9 @@ export async function handler(event) {
     });
 
     const data = await response.json();
-    const reply =
-      data?.choices?.[0]?.message?.content ||
-      "I couldn't find an exact answer to your question. Would you like to contact our support team on WhatsApp for personalized assistance?";
+    // Default fallback if AI fails or doesn't find context
+    const fallback = "I couldn't find an exact answer to your question. Would you like to [Contact Support on WhatsApp](https://wa.me/923178226242) for personalized assistance?";
+    const reply = data?.choices?.[0]?.message?.content || fallback;
 
     return { statusCode: 200, body: JSON.stringify({ reply }) };
   } catch (err) {
@@ -75,8 +78,7 @@ export async function handler(event) {
     return {
       statusCode: 500,
       body: JSON.stringify({
-        reply:
-          "I couldn't find an exact answer to your question. Would you like to contact our support team on WhatsApp for personalized assistance?",
+        reply: "I couldn't find an exact answer to your question. Would you like to [Contact Support on WhatsApp](https://wa.me/923178226242) for personalized assistance?",
       }),
     };
   }
