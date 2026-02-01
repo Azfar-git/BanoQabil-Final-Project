@@ -15,8 +15,7 @@ RULES:
 - NO prior knowledge, guesses, or assumptions.
 ${isStudent ? "- If a student asks for advice, use the 'Guidance' context to help them choose a career path." : "- If the user greets you, respond friendly then ask if they want to know about courses, campuses, or admissions."}
 - If the answer is NOT in CONTEXT, reply EXACTLY:
-  "I couldn't find an exact answer to your question. Would you like to [Contact Support on WhatsApp](https://wa.me/923178226242) for personalized assistance?"
-
+ "I couldn't find an exact answer to your question. If you need more help, you can [Contact Support on WhatsApp](https://wa.me/923178226242)"
 FORMAT:
 - Markdown bullets only (max 6 bullets, one sentence each)
 - **Bold** for section titles
@@ -39,47 +38,56 @@ INSTRUCTIONS:
 };
 
 export async function handler(event) {
+  // Define the fallback message UP HERE so it's available everywhere
+  const fallback =
+    "I couldn't find an exact answer to your question. For more help, you can contact our support team: [Chat on WhatsApp](https://wa.me/923178226242)";
+
   try {
     const body = JSON.parse(event.body);
-    const { message, role } = body; 
+    const { message, role } = body;
 
     if (!message) {
-      return { statusCode: 400, body: JSON.stringify({ reply: "No message provided." }) };
+      return {
+        statusCode: 400,
+        body: JSON.stringify({ reply: "No message provided." }),
+      };
     }
 
     const systemPrompt = buildSystemPrompt(role);
 
-    const response = await fetch("https://router.huggingface.co/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        //eslint-disable-next-line no-undef
-        Authorization: `Bearer ${process.env.HF_TOKEN}`,
-        "Content-Type": "application/json",
+    const response = await fetch(
+      "https://router.huggingface.co/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.HF_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: message },
+          ],
+          temperature: 0.2,
+          max_tokens: 400,
+        }),
       },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
-        ],
-        temperature: 0.2,
-        max_tokens: 400,
-      }),
-    });
+    );
 
     const data = await response.json();
-    // Default fallback if AI fails or doesn't find context
-    const fallback = "I couldn't find an exact answer to your question. Would you like to [Contact Support on WhatsApp](https://wa.me/923178226242) for personalized assistance?";
-    const reply = data?.choices?.[0]?.message?.content || fallback;
 
-    return { statusCode: 200, body: JSON.stringify({ reply }) };
+    const aiReply = data?.choices?.[0]?.message?.content || fallback;
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ reply: aiReply }),
+    };
   } catch (err) {
     console.error("Server error:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        reply: "I couldn't find an exact answer to your question. Would you like to [Contact Support on WhatsApp](https://wa.me/923178226242) for personalized assistance?",
-      }),
+      body: JSON.stringify({ reply: fallback }),
     };
   }
 }
