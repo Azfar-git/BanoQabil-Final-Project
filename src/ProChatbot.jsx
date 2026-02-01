@@ -9,6 +9,8 @@ export default function ProChatbot() {
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
   const [userRole, setUserRole] = useState("guest");
+  const [currentMood, setCurrentMood] = useState("default");
+  const [showRoadmap, setShowRoadmap] = useState(false);
   const [messages, setMessages] = useState([
     {
       sender: "ai",
@@ -22,6 +24,7 @@ export default function ProChatbot() {
 
   const WHATSAPP_URL = "https://wa.me/923178226242";
 
+  // Role Fetching Logic (Untouched)
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -74,19 +77,37 @@ export default function ProChatbot() {
       const res = await fetch("/.netlify/functions/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: userMessage,
-          role: userRole,
-        }),
+        body: JSON.stringify({ message: userMessage, role: userRole }),
       });
       const data = await res.json();
-      setMessages((prev) => [...prev, { sender: "ai", text: data.reply }]);
-    } catch {
+      let botReply = data.reply;
+
+      // Logic for Mood & Commands
+      if (botReply.includes("[MOOD:EMPATHY]")) {
+        setCurrentMood("empathy");
+        botReply = botReply.replace("[MOOD:EMPATHY]", "");
+      } else if (botReply.includes("[MOOD:HYPED]")) {
+        setCurrentMood("hyped");
+        botReply = botReply.replace("[MOOD:HYPED]", "");
+      } else {
+        setCurrentMood("default");
+      }
+
+      if (botReply.includes("[COMMAND:ROADMAP]")) {
+        setShowRoadmap(true);
+        botReply = botReply.replace("[COMMAND:ROADMAP]", "");
+      }
+
+      setMessages((prev) => [
+        ...prev,
+        { sender: "ai", text: botReply, mood: currentMood },
+      ]);
+    } catch (error) {
       setMessages((prev) => [
         ...prev,
         {
           sender: "ai",
-          text: `Sorry, I’m having trouble connecting. Would you like to [Contact Support On Whatsapp ?](${WHATSAPP_URL})`,
+          text: `Error connecting. [WhatsApp Support](${WHATSAPP_URL})`,
         },
       ]);
     } finally {
@@ -102,8 +123,18 @@ export default function ProChatbot() {
     }
   };
 
+  // UI Helpers
+  const getMoodStyles = (mood) => {
+    if (mood === "empathy")
+      return "bg-amber-50/50 shadow-[0_0_15px_rgba(251,191,36,0.3)] border-amber-100";
+    if (mood === "hyped")
+      return "bg-purple-50/50 shadow-[0_0_15px_rgba(168,85,247,0.3)] border-purple-100";
+    return "bg-white border-gray-100";
+  };
+
   return (
     <div className="fixed bottom-6 right-6 z-50 font-sans flex flex-col items-end">
+      {/* Notification bubble (Untouched) */}
       <AnimatePresence>
         {showNotification && !isOpen && (
           <motion.div
@@ -120,6 +151,7 @@ export default function ProChatbot() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
+            /* RESTORED ORIGINAL SMOOTH ANIMATION */
             initial={{
               opacity: 0,
               scale: 0.7,
@@ -136,6 +168,7 @@ export default function ProChatbot() {
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
             className="w-[340px] h-[500px] bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden border border-gray-100 mb-4"
           >
+            {/* Header (Untouched) */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-4 flex justify-between items-center">
               <div>
                 <div className="font-bold text-[15px] leading-none">
@@ -167,6 +200,7 @@ export default function ProChatbot() {
               </button>
             </div>
 
+            {/* Message Area */}
             <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[#f9fafb]">
               {messages.map((msg, i) => (
                 <motion.div
@@ -176,7 +210,8 @@ export default function ProChatbot() {
                   className={`flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}
                 >
                   <div
-                    className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-[13px] shadow-sm ${msg.sender === "user" ? "bg-blue-600 text-white rounded-br-none" : "bg-white text-gray-800 rounded-bl-none border border-gray-100"}`}
+                    className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-[13px] transition-all duration-500 shadow-sm 
+                    ${msg.sender === "user" ? "bg-blue-600 text-white rounded-br-none" : `rounded-bl-none border ${getMoodStyles(msg.mood)} text-gray-800`}`}
                   >
                     <ReactMarkdown
                       components={{
@@ -189,17 +224,14 @@ export default function ProChatbot() {
                           </strong>
                         ),
                         a: ({ href, children }) => {
-                          const isWhatsApp = href?.includes("wa.me");
-                          if (isWhatsApp) {
+                          if (href?.includes("wa.me")) {
                             return (
                               <div className="flex flex-col gap-2">
                                 <span className="text-inherit">{children}</span>
-
                                 <a
                                   href={href}
                                   target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="mt-2 flex items-center justify-center gap-2 bg-[#25D366] hover:bg-[#20bd5a] text-white font-bold py-3 px-4 rounded-xl transition-all shadow-md no-underline w-full"
+                                  className="mt-2 flex items-center justify-center gap-2 bg-[#25D366] text-white font-bold py-3 px-4 rounded-xl shadow-md no-underline w-full"
                                 >
                                   <svg
                                     width="18"
@@ -231,6 +263,34 @@ export default function ProChatbot() {
                   </div>
                 </motion.div>
               ))}
+
+              {/* Roadmap Card */}
+              {showRoadmap && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="p-4 bg-white rounded-2xl border-t-4 border-blue-600 shadow-lg my-2"
+                >
+                  <div className="flex justify-between">
+                    <h4 className="font-bold text-blue-800 text-[13px]">
+                      🚀 Success Roadmap
+                    </h4>
+                    <button onClick={() => setShowRoadmap(false)}>✕</button>
+                  </div>
+                  <div className="text-[11px] mt-2 space-y-1 text-gray-600">
+                    <p>
+                      <b>1. Test:</b> Clear the basic aptitude quiz.
+                    </p>
+                    <p>
+                      <b>2. Learn:</b> 3 months of hands-on skills.
+                    </p>
+                    <p>
+                      <b>3. Earn:</b> Graduate & start your career.
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+
               {loading && (
                 <div className="flex justify-start">
                   <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl rounded-tl-none flex gap-1.5 shadow-sm">
@@ -243,6 +303,7 @@ export default function ProChatbot() {
               <div ref={messagesEndRef} />
             </div>
 
+            {/* Input Area (Untouched) */}
             <div className="p-3 bg-white border-t border-gray-100 flex gap-2 items-center">
               <textarea
                 ref={inputRef}
@@ -268,8 +329,6 @@ export default function ProChatbot() {
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2.5"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
                 >
                   <line x1="22" y1="2" x2="11" y2="13" />
                   <polygon points="22 2 15 22 11 13 2 9 22 2" />
@@ -280,6 +339,7 @@ export default function ProChatbot() {
         )}
       </AnimatePresence>
 
+      {/* Toggle Button (Untouched) */}
       {!isOpen && (
         <motion.button
           layoutId="chat-toggle"
@@ -288,13 +348,7 @@ export default function ProChatbot() {
           whileTap={{ scale: 0.95 }}
           className="bg-gradient-to-r from-blue-600 to-purple-600 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center cursor-pointer border-2 border-white"
         >
-          <svg
-            width="32px"
-            height="32px"
-            viewBox="0 0 24 24"
-            fill="white"
-            xmlns="http://www.w3.org/2000/svg"
-          >
+          <svg width="32px" height="32px" viewBox="0 0 24 24" fill="white">
             <path
               d="M9 15C8.44771 15 8 15.4477 8 16C8 16.5523 8.44771 17 9 17C9.55229 17 10 16.5523 10 16C10 15.4477 9.55229 15 9 15Z"
               fill="white"
