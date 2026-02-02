@@ -3,68 +3,80 @@ import contextData from "../../context.json";
 
 const MODEL = "meta-llama/Llama-3.1-8B-Instruct";
 
-const buildSystemPrompt = (role) => {
-  const isStudent = role === "student";
+const buildSystemPrompt = (role, userMessage, userName) => {
+  const isStudent = role === "student"; 
 
-  let prompt = `
-You are BanoQabil AI, the official informational assistant for BanoQabil.pk.
-${isStudent ? "CURRENT USER STATUS: REGISTERED STUDENT. Act as a supportive mentor and career counselor." : "CURRENT USER STATUS: GUEST. Act as a professional informational assistant."}
+  const relevantContext = contextData
+    .filter((item) => {
+      const keywords = item.title.toLowerCase().split(" ");
+      return (
+        keywords.some((kw) => userMessage.toLowerCase().includes(kw)) ||
+        item.important
+      );
+    })
+    .slice(0, 10);
 
-RULES:
-- ONLY use information explicitly in the CONTEXT below.
-- NO prior knowledge, guesses, or assumptions.
-${isStudent ? "- If a student asks for advice, use the 'Guidance' context to help them choose a career path." : "- If the user greets you, respond friendly then ask if they want to know about courses, campuses, or admissions."}
-- If the answer is NOT in CONTEXT, reply EXACTLY:
- "I couldn't find an exact answer to your question. If you need more help, you can [Contact Support on WhatsApp](https://wa.me/923178226242)"
-FORMAT:
-- Markdown bullets only (max 6 bullets, one sentence each)
-- **Bold** for section titles
-- Calm, professional, factual
+  return `
+You are BanoQabil AI, the official mentor and assistant for BanoQabil.pk.
+${
+  isStudent
+    ? `USER STATUS: REGISTERED STUDENT. Name: ${userName}. Tone: Encouraging, mentorship-driven, and career-focused.`
+    : `USER STATUS: GUEST. Name: ${userName}. Tone: Professional, informative, and concise.`
+}
 
-SPECIAL COMMANDS:
-- If the user asks for a roadmap, career path, or "what to do," end your message with [COMMAND:ROADMAP].
-- If the user is frustrated or upset, start your response with [MOOD:EMPATHY].
-- If the user is excited or greeting you, start your response with [MOOD:HYPED].s
+STRICT RULES:
+1. ONLY use the CONTEXT provided. Do not invent details.
+2. If the user is a GUEST, focus on admissions, courses, and basic FAQs.
+3. If the user is a STUDENT, provide deeper guidance on career paths and course benefits.
+4. If information is missing, use the EXACT fallback message provided below.
+
+FORMATTING:
+- Use **Bold** for emphasis and titles.
+- Use bullet points for lists.
+- Keep responses under 4 sentences unless listing items.
+
+SPECIAL TRIGGERS:
+- [MOOD:EMPATHY] if user is struggling/confused.
+- [MOOD:HYPED] if user is happy/greeting.
+- [COMMAND:ROADMAP] if a STUDENT asks about career paths or "what's next".
 
 CONTEXT:
+${relevantContext.map((item) => `- **${item.title}:** ${item.text}`).join("\n")}
 `;
-
-  contextData.forEach((item) => {
-    prompt += `\n- **${item.title}:** ${item.text}`;
-  });
-
-  prompt += `
-INSTRUCTIONS:
-- Prioritize only the most important info relevant to the user's question.
-- Keep response concise (~400 tokens max).
-`;
-
-  return prompt;
 };
 
 export async function handler(event) {
-  // Define the fallback message UP HERE so it's available everywhere
   const fallback =
-    "I couldn't find an exact answer to your question. For more help, you can contact our support team: [Chat on WhatsApp](https://wa.me/923178226242)";
+    "I couldn't find an exact answer to your question in our database. Please [Contact Support on WhatsApp](https://wa.me/923178226242) for personalized help.";
+  if (event.httpMethod !== "POST")
+    return { statusCode: 405, body: "Method Not Allowed" };
 
   try {
-    const body = JSON.parse(event.body);
-    const { message, role } = body;
-
-    if (!message) {
+    const { message, role, history, userName } = JSON.parse(event.body);
+    if (!message)
       return {
         statusCode: 400,
-        body: JSON.stringify({ reply: "No message provided." }),
+        body: JSON.stringify({ reply: "Message is required." }),
       };
-    }
 
-    const systemPrompt = buildSystemPrompt(role);
+    const systemPrompt = buildSystemPrompt(
+      role || "guest",
+      message,
+      userName || "Guest",
+    );
+
+    // Construct history for the AI model
+    const chatHistory = (history || []).slice(-6).map((msg) => ({
+      role: msg.role,
+      content: msg.content,
+    }));
 
     const response = await fetch(
       "https://router.huggingface.co/v1/chat/completions",
       {
         method: "POST",
         headers: {
+          //eslint-disable-next-line no-undef
           Authorization: `Bearer ${process.env.HF_TOKEN}`,
           "Content-Type": "application/json",
         },
@@ -72,27 +84,31 @@ export async function handler(event) {
           model: MODEL,
           messages: [
             { role: "system", content: systemPrompt },
+            ...chatHistory,
             { role: "user", content: message },
           ],
-          temperature: 0.2,
-          max_tokens: 400,
+          temperature: 0.1,
+          max_tokens: 450,
+          top_p: 0.9,
         }),
       },
     );
 
     const data = await response.json();
-
-    const aiReply = data?.choices?.[0]?.message?.content || fallback;
+    let aiReply = data?.choices?.[0]?.message?.content || fallback;
+    if (aiReply.length < 5) aiReply = fallback;
 
     return {
       statusCode: 200,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reply: aiReply }),
     };
-  } catch (err) {
-    console.error("Server error:", err);
+  } catch {
     return {
       statusCode: 500,
-      body: JSON.stringify({ reply: fallback }),
+      body: JSON.stringify({
+        reply: "System is briefly offline. Please try again later.",
+      }),
     };
   }
 }

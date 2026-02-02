@@ -1,344 +1,63 @@
 [
   {
     "id": 1,
-    "title": "Overview",
-    "text": "Bano Qabil is a free IT and professional skills training initiative by Alkhidmat Foundation Pakistan that equips youth with modern digital and technical skills. It bridges academic knowledge to employment through structured courses and certification."
+    "title": "Bano Qabil 5.0 Overview & Leadership",
+    "important": true,
+    "text": "Bano Qabil 5.0 is the latest mega-scale IT initiative by Alkhidmat Foundation, launched Jan 3, 2026, at Expo Centre Karachi. Led by Patron-in-Chief Hafiz Naeem ur Rehman and Chairman Naveed Ali Baig. It provides 100% free IT training for youth aged 14-30. Artificial Intelligence (AI) is now a mandatory component of every single course."
   },
   {
     "id": 2,
-    "title": "Impact: Students Trained",
-    "text": "Bano Qabil has trained over 75,000 students through its programs, empowering them with technology and career-ready skills."
+    "title": "Karachi Campuses: North & Central Clusters",
+    "text": "Campuses in this region include: Al Huda Campus (North Karachi Power House), Anjuman Complex (Sakhi Hasan/North Nazimabad), Liaquatabad (JI Office), Nazimabad Block 5 (Pakistan Central Homeopathic Medical College), and Gulberg Campus."
   },
   {
     "id": 3,
-    "title": "Impact: Active Facilities / Campuses",
-    "text": "Bano Qabil operates more than 50 active training facilities to make education accessible across regions of Pakistan."
+    "title": "Karachi Campuses: East, Gulshan & Jauhar Clusters",
+    "text": "Campuses in this region include: Idara Noor-e-Haq (H.O. Quaideen Colony), Circle Social Welfare (13D Gulshan), Al-Aqsa (Gulshan), Safoora (Jauhar), Umer-e-Farooq Masjid (PIA Society), Bahadurabad (Escuela & Askari College), and PECHS Harmain School (Block 6)."
   },
   {
     "id": 4,
-    "title": "Impact: Incubation Centres",
-    "text": "Bano Qabil has established 6 incubation centres to support students in building real projects and portfolios."
+    "title": "Karachi Campuses: South, Lyari & West Clusters",
+    "text": "Campuses in this region include: Clifton (Punjab Chowrangi), Garden (Asa Jalal Complex), Lyari (Moosa Lane, Kharadar KMA Protech, HOL Kara Bai), SITE Metroville, Keamari (SKIT), Orangi Town 11.5, and Baldia Town (Piston College)."
   },
   {
     "id": 5,
-    "title": "Impact: High Tech Courses",
-    "text": "Bano Qabil offers 29 advanced tech courses designed to teach in-demand skills aligned with the job market."
+    "title": "Karachi Campuses: Malir, Korangi & Modern Hubs",
+    "text": "Campuses in this region include: Malir (Kausar Town), Korangi (Allah Wala Town), Landhi 6 (JI Office), Shah Faisal (Jamia Millia & Dr. Mehmood Hussain), Shah Latif Town, Bahria Town Karachi, Gulshan-e-Hadeed, and Gulshan-e-Maymar (Etawa & Sherwani Suites)."
   },
   {
     "id": 6,
-    "title": "Impact: Registered Tech Employees",
-    "text": "Over 100,000 tech employees have been registered through Bano Qabil’s program network."
+    "title": "Nationwide Presence (86+ Campuses)",
+    "text": "Bano Qabil operates across Pakistan: Punjab (27 campuses including Lahore Gulberg III), KPK (33 including Peshawar, Swat, Mardan), Islamabad (10 centers), Balochistan (5 in Quetta), Sindh Interior (8 including Hyderabad/Sukkur), Gilgit-Baltistan (5), and Azad Kashmir (3)."
   },
   {
     "id": 7,
-    "title": "Services Offered: Advanced IT Training",
-    "text": "Bano Qabil provides Advanced IT Training that helps learners gain practical, job-ready skills aligned with industry standards."
+    "title": "Courses: AI, Software & Coding Path",
+    "text": "Advanced Courses: Generative AI (LLMs & RAG), Prompt Engineering, Web Development with AI, MERN Stack, Frontend (Next.js 15), Python (FastAPI), Flutter Mobile Apps, Unity Game Dev, SQA Automation, and No-Code AI Orchestration."
   },
   {
     "id": 8,
-    "title": "Services Offered: Strategic Incubation Centre",
-    "text": "The Strategic Incubation Centre offers hands-on project experience and portfolio building support for participants."
+    "title": "Courses: Marketing, E-Commerce & Creative Path",
+    "text": "Courses: Digital Marketing & Freelancing, Amazon FBA VA, Shopify, Daraz Ecosystem, UI/UX (Figma), Graphic Design, Video Editing (After Effects/Premiere), Content Writing, and Digital Journalism."
   },
   {
     "id": 9,
-    "title": "Services Offered: Dedicated Job Portal",
-    "text": "Bano Qabil’s job portal connects students with job openings, freelancing opportunities, and career guidance."
+    "title": "Admission Roadmap & Security Deposit",
+    "text": "The 5-step process: Online Registration (banoqabil.pk), Aptitude Test, Interview, Security Deposit, and Campus Selection. A PKR 3,000 security deposit is required, which is strictly refundable after course completion and exam appearance."
   },
   {
     "id": 10,
-    "title": "Admission Roadmap",
-    "text": "Bano Qabil follows an 8-step admission process: Registration, Aptitude Test, Interview, Security Deposit, Campus Selection, Class Commencement, Examination, and Certification."
+    "title": "Career Services: Qabil.jobs & Incubation",
+    "text": "Qabil.jobs is the official job portal launched in Jan 2026 for digital CVs and job matching. Incubation Centers provide hands-on project support. Certifications are verified by SBTE, SDC, and LRN (International)."
   },
   {
     "id": 11,
-    "title": "Certification: LRN",
-    "text": "Bano Qabil courses are certified by the Learning Resource Network (LRN), ensuring international recognition."
+    "title": "Guidance: Course Selection Advice",
+    "text": "Students should choose Web Dev/AI for coding careers, Digital Marketing/Amazon for e-commerce business, or Graphic Design/Video Editing for creative fields. Every student is advised to start freelancing on Fiverr/Upwork during training."
   },
   {
     "id": 12,
-    "title": "Certification: SBTE",
-    "text": "Sindh Board of Technical Education (SBTE) provides certification for applicable courses at Bano Qabil."
-  },
-  {
-    "id": 13,
-    "title": "Certification: SDC",
-    "text": "Skills Development Council (SDC) collaborates with Bano Qabil for accredited skill certificates."
-  },
-  {
-    "id": 14,
-    "title": "Admission FAQs",
-    "text": "Bano Qabil FAQs cover eligibility, security deposit, registration process, and attendance requirements. Registration opens on official channels; classes are physical; security deposit is PKR 3,000 refundable upon completion."
-  },
-  {
-    "id": 15,
-    "title": "Course FAQs",
-    "text": "Bano Qabil courses are free-of-cost and run for approximately 3 months. Eligible applicants from ages 14–30 can register. Only one course can be taken at a time, and classes are held in-person."
-  },
-  {
-    "id": 16,
-    "title": "Contact Information",
-    "text": "Head Office: 501, Quaideen Colony, Karachi, Sindh, Pakistan. Phone: 021-111-503504 Ext 194. WhatsApp: 0317-8226242. Email: banoqabil.khi@alkhidmat.com."
-  },
-  {
-    "id": 17,
-    "title": "Campus: Al Huda",
-    "text": "Al Huda Campus – North Karachi (Power House), Karachi."
-  },
-  {
-    "id": 18,
-    "title": "Campus: Anjuman Complex",
-    "text": "Anjuman Complex Campus – Sakhi Hasan, Karachi."
-  },
-  {
-    "id": 19,
-    "title": "Campus: Circle Social Welfare Foundation",
-    "text": "Circle Social Welfare Foundation Campus – Gulshan-e-Iqbal, Karachi."
-  },
-  {
-    "id": 20,
-    "title": "Campus: Al-Aqsa",
-    "text": "Al-Aqsa Campus – Gulshan-e-Iqbal, Karachi."
-  },
-  {
-    "id": 21,
-    "title": "Campus: Clifton",
-    "text": "Clifton Campus – Punjab Chowrangi, Karachi."
-  },
-  {
-    "id": 22,
-    "title": "Campus: Landhi#6",
-    "text": "Landhi #6 Campus – Jamaat-e-Islami Office, Karachi."
-  },
-  {
-    "id": 23,
-    "title": "Campus: Liaquatabad",
-    "text": "Liaquatabad Campus – Jamaat-e-Islami Office, Karachi."
-  },
-  {
-    "id": 24,
-    "title": "Campus: Escuela Schooling System",
-    "text": "Escuela Schooling System Campus – Bahadurabad, Karachi."
-  },
-  { "id": 25, "title": "Campus: Garden", "text": "Garden Campus – Karachi." },
-  { "id": 26, "title": "Campus: Gulberg", "text": "Gulberg Campus – Karachi." },
-  {
-    "id": 27,
-    "title": "Campus: Harmain School PECHS-6",
-    "text": "Harmain School Campus – P.E.C.H.S Block 6, Karachi."
-  },
-  {
-    "id": 28,
-    "title": "Campus: Idara Noor-e-Haq",
-    "text": "Idara Noor-e-Haq Campus – Quaideen Colony, Karachi."
-  },
-  {
-    "id": 29,
-    "title": "Campus: Jamia Millia School",
-    "text": "Jamia Millia School Campus – Shahfaisal Town, Karachi."
-  },
-  {
-    "id": 30,
-    "title": "Campus: Jamia Tul Ansar",
-    "text": "Jamia Tul Ansar Campus – Moosa Lane, Lyari, Karachi."
-  },
-  {
-    "id": 31,
-    "title": "Campus: Kausar Town",
-    "text": "Kausar Town Campus – Malir, Karachi."
-  },
-  {
-    "id": 32,
-    "title": "Campus: KMA Protech Institute",
-    "text": "KMA Protech Institute – Kharadar, Karachi."
-  },
-  {
-    "id": 33,
-    "title": "Campus: Korangi Allah Wala Town",
-    "text": "Korangi Allah Wala Town Campus – Karachi."
-  },
-  {
-    "id": 34,
-    "title": "Campus: Orangi Town 11½",
-    "text": "Orangi Town 11½ Campus – Karachi."
-  },
-  {
-    "id": 35,
-    "title": "Campus: Pakistan Central Homeopathic Medical College",
-    "text": "Pakistan Central Homeopathic Medical College Campus – Nazimabad, Karachi."
-  },
-  {
-    "id": 36,
-    "title": "Campus: Piston College",
-    "text": "Piston College Campus – Baldia Town, Karachi."
-  },
-  {
-    "id": 37,
-    "title": "Campus: Safoora",
-    "text": "Safoora Campus – Gulistan-e-Jauhar, Karachi."
-  },
-  {
-    "id": 38,
-    "title": "Campus: Shah Latif Town",
-    "text": "Shah Latif Town Campus – Karachi."
-  },
-  {
-    "id": 39,
-    "title": "Campus: Umer-e-Farooq Masjid PIA Society",
-    "text": "Umer-e-Farooq Masjid Campus – PIA Society, Jauhar, Karachi."
-  },
-  {
-    "id": 40,
-    "title": "Campus: Etawa",
-    "text": "Etawa Campus – Gulshan-e-Maymar, Karachi."
-  },
-  {
-    "id": 41,
-    "title": "Campus: HOL Kara Bai",
-    "text": "HOL Kara Bai Campus – Lyari, Karachi."
-  },
-  {
-    "id": 42,
-    "title": "Campus: Bahria Town",
-    "text": "Bahria Town Campus – Karachi."
-  },
-  {
-    "id": 43,
-    "title": "Campus: Gulshan-e-Hadeed",
-    "text": "Gulshan-e-Hadeed Campus – Karachi."
-  },
-  {
-    "id": 44,
-    "title": "Campus: Askari Degree College",
-    "text": "Askari Degree College Campus – Bahadurabad, Karachi."
-  },
-  {
-    "id": 45,
-    "title": "Campus: Dr. Mehmood Hussain",
-    "text": "Dr. Mehmood Hussain Campus – Shahfaisal Town, Karachi."
-  },
-  {
-    "id": 46,
-    "title": "Campus: Sherwani Suites",
-    "text": "Sherwani Suites Campus – Gulshan-e-Maymar, Karachi."
-  },
-  {
-    "id": 47,
-    "title": "Campus: Metroville",
-    "text": "Metroville Campus – SITE Area, Karachi."
-  },
-  {
-    "id": 48,
-    "title": "Campus: SKIT Keamari",
-    "text": "SKIT – Keamari Campus – Karachi."
-  },
-  {
-    "id": 49,
-    "title": "Founder & Patron-in-Chief",
-    "text": "Hafiz Naeem ur Rehman launched the Bano Qabil initiative under Alkhidmat Foundation Pakistan to empower youth with IT and vocational skills."
-  },
-  {
-    "id": 50,
-    "title": "Chairman",
-    "text": "Mr. Naveed Ali Baig serves as the Chairman of Bano Qabil Pakistan, guiding the program's vision for skill development and youth empowerment."
-  },
-  {
-    "id": 51,
-    "title": "Nationwide Presence",
-    "text": "Bano Qabil operates campuses across Pakistan: 27 in Punjab, 8 in Sindh, 5 in Balochistan, 33 in Khyber Pakhtunkhwa, 5 in Azad Kashmir, and additional centers in Islamabad and Gilgit."
-  },
-  {
-    "id": 52,
-    "title": "Impact & Reach",
-    "text": "The initiative has enrolled thousands of students, conducted IT training at multiple centers, and successfully graduated numerous participants into IT and vocational careers."
-  },
-  {
-    "id": 53,
-    "title": "Focus Areas",
-    "text": "Bano Qabil emphasizes IT, digital marketing, cybersecurity, entrepreneurship, and business training, providing fully-funded, advanced skill programs."
-  },
-  {
-    "id": 54,
-    "title": "Inclusivity & Support",
-    "text": "The program actively supports women and underprivileged students, providing resources, mentorship, and hands-on project experience."
-  },
-  {
-    "id": 55,
-    "title": "Partnerships & Collaborations",
-    "text": "Bano Qabil partners with tech companies, educational institutions, and industry experts to enhance training quality and job placement opportunities."
-  },
-  {
-    "id": 56,
-    "title": "Future Plans",
-    "text": "Bano Qabil aims to expand its reach, introduce new courses, and strengthen industry connections to further empower Pakistan's youth."
-  },
-  {
-    "id": 57,
-    "title": "Guidance: Choosing a Course",
-    "text": "Students should choose a course based on their interest: Web Development for those who love building apps; Digital Marketing for creative communicators; and Cybersecurity for those interested in data protection."
-  },
-  {
-    "id": 58,
-    "title": "Guidance: Career Growth",
-    "text": "Bano Qabil recommends students utilize the dedicated Job Portal and Incubation Centres immediately after certification to build a professional portfolio and find employment."
-  },
-  {
-    "id": 59,
-    "title": "Guidance: Learning Strategy",
-    "text": "Students are advised to maintain 80% attendance and participate in hands-on projects at the incubation centres to ensure international certification success."
-  },
-  {
-    "id": 60,
-    "title": "Guidance: Python & AI Path",
-    "text": "For students interested in data and automation, the Python and AI courses offer a roadmap toward becoming a data scientist or backend developer."
-  },
-  {
-    "id": 61,
-    "title": "Guidance: Graphic Design Path",
-    "text": "Creative students are encouraged to take Graphic Design and UI/UX courses to enter the creative industry as freelance designers or brand experts."
-  },
-  {
-    "id": 62,
-    "title": "Guidance: Freelancing Success",
-    "text": "Bano Qabil mentors advise students to create profiles on Fiverr and Upwork while still in training to apply their skills in real-time."
-  },
-  {
-    "id": 63,
-    "title": "Guidance: Networking",
-    "text": "Graduates should attend Bano Qabil job fairs and networking events at Idara Noor-e-Haq to meet industry leaders face-to-face."
-  },
-  {
-    "id": 64,
-    "title": "Guidance: Mobile App Dev",
-    "text": "Students fascinated by smartphones should focus on Flutter or React Native courses to build cross-platform mobile applications."
-  },
-  {
-    "id": 65,
-    "title": "Guidance: E-commerce Path",
-    "text": "The Amazon and Shopify courses are ideal for students wanting to start their own online businesses or manage global storefronts."
-  },
-  {
-    "id": 66,
-    "title": "Guidance: English Proficiency",
-    "text": "Bano Qabil offers English Language courses because communication is the most critical skill for closing deals with international clients."
-  },
-  {
-    "id": 67,
-    "title": "Campus: Centralized Support",
-    "text": "Students at any campus can visit the Head Office at Quaideen Colony for advanced career counseling and certification issues."
-  },
-  {
-    "id": 68,
-    "title": "Impact: Gender Diversity",
-    "text": "Special batches for women are organized at various campuses to ensure a safe and empowering learning environment for sisters."
-  },
-  {
-    "id": 69,
-    "title": "Impact: Freelance Earnings",
-    "text": "Many Bano Qabil graduates now earn between $300 to $1000 per month as freelancers, contributing to Pakistan's digital economy."
-  },
-  {
-    "id": 70,
-    "title": "Guidance: Soft Skills",
-    "text": "Beyond technical skills, the program provides training in time management, professional ethics, and interview preparation."
+    "title": "Mentorship: Student Success Strategy",
+    "text": "For maximum success, students must maintain 80% attendance, complete 3 hands-on projects in the incubation center, and attend Bano Qabil Job Fairs at Idara Noor-e-Haq."
   }
 ]

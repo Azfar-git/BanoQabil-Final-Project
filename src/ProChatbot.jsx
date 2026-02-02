@@ -15,6 +15,7 @@ export default function ProChatbot() {
     {
       sender: "ai",
       text: "Hi 👋 I’m **BanoQabil AI**. Ask me anything about courses, campuses, admissions, or programs.",
+      mood: "default",
     },
   ]);
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,6 @@ export default function ProChatbot() {
 
   const WHATSAPP_URL = "https://wa.me/923178226242";
 
-  // Role Fetching Logic (Untouched)
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -82,16 +82,16 @@ export default function ProChatbot() {
       const data = await res.json();
       let botReply = data.reply;
 
-      // Logic for Mood & Commands
+      let detectedMood = "default";
       if (botReply.includes("[MOOD:EMPATHY]")) {
-        setCurrentMood("empathy");
+        detectedMood = "empathy";
         botReply = botReply.replace("[MOOD:EMPATHY]", "");
       } else if (botReply.includes("[MOOD:HYPED]")) {
-        setCurrentMood("hyped");
+        detectedMood = "hyped";
         botReply = botReply.replace("[MOOD:HYPED]", "");
-      } else {
-        setCurrentMood("default");
       }
+
+      setCurrentMood(detectedMood);
 
       if (botReply.includes("[COMMAND:ROADMAP]")) {
         setShowRoadmap(true);
@@ -100,14 +100,15 @@ export default function ProChatbot() {
 
       setMessages((prev) => [
         ...prev,
-        { sender: "ai", text: botReply, mood: currentMood },
+        { sender: "ai", text: botReply, mood: detectedMood },
       ]);
-    } catch (error) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         {
           sender: "ai",
           text: `Error connecting. [WhatsApp Support](${WHATSAPP_URL})`,
+          mood: "default",
         },
       ]);
     } finally {
@@ -123,18 +124,16 @@ export default function ProChatbot() {
     }
   };
 
-  // UI Helpers
   const getMoodStyles = (mood) => {
     if (mood === "empathy")
-      return "bg-amber-50/50 shadow-[0_0_15px_rgba(251,191,36,0.3)] border-amber-100";
+      return "bg-purple-50 border-purple-200 shadow-[0_0_20px_rgba(147,51,234,0.25)] text-purple-950";
     if (mood === "hyped")
-      return "bg-purple-50/50 shadow-[0_0_15px_rgba(168,85,247,0.3)] border-purple-100";
-    return "bg-white border-gray-100";
+      return "bg-orange-50 border-orange-200 shadow-[0_0_20px_rgba(249,115,22,0.25)] text-orange-950";
+    return "bg-white border-gray-100 text-gray-800";
   };
 
   return (
     <div className="fixed bottom-6 right-6 z-50 font-sans flex flex-col items-end">
-      {/* Notification bubble (Untouched) */}
       <AnimatePresence>
         {showNotification && !isOpen && (
           <motion.div
@@ -151,7 +150,6 @@ export default function ProChatbot() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            /* RESTORED ORIGINAL SMOOTH ANIMATION */
             initial={{
               opacity: 0,
               scale: 0.7,
@@ -168,14 +166,22 @@ export default function ProChatbot() {
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
             className="w-[340px] h-[500px] bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden border border-gray-100 mb-4"
           >
-            {/* Header (Untouched) */}
-            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-4 flex justify-between items-center">
+            {/* Header - Fixed Blue/Purple Gradient */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-4 flex justify-between items-center transition-all duration-700">
               <div>
                 <div className="font-bold text-[15px] leading-none">
                   BanoQabil AI
                 </div>
                 <div className="flex items-center gap-1.5 mt-1.5">
-                  <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  <span
+                    className={`w-2 h-2 rounded-full animate-pulse transition-colors duration-500 ${
+                      currentMood === "hyped"
+                        ? "bg-orange-300"
+                        : currentMood === "empathy"
+                          ? "bg-purple-300"
+                          : "bg-green-400"
+                    }`}
+                  />
                   <span className="text-[10px] opacity-90 uppercase tracking-widest font-semibold">
                     {userRole === "student"
                       ? "Student Mentor"
@@ -211,7 +217,7 @@ export default function ProChatbot() {
                 >
                   <div
                     className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-[13px] transition-all duration-500 shadow-sm 
-                    ${msg.sender === "user" ? "bg-blue-600 text-white rounded-br-none" : `rounded-bl-none border ${getMoodStyles(msg.mood)} text-gray-800`}`}
+                    ${msg.sender === "user" ? "bg-blue-600 text-white rounded-br-none shadow-blue-200" : `rounded-bl-none border ${getMoodStyles(msg.mood)}`}`}
                   >
                     <ReactMarkdown
                       components={{
@@ -219,7 +225,7 @@ export default function ProChatbot() {
                           <p className="m-0 leading-relaxed">{children}</p>
                         ),
                         strong: ({ children }) => (
-                          <strong className="font-bold text-blue-600">
+                          <strong className="font-bold text-blue-700">
                             {children}
                           </strong>
                         ),
@@ -231,7 +237,8 @@ export default function ProChatbot() {
                                 <a
                                   href={href}
                                   target="_blank"
-                                  className="mt-2 flex items-center justify-center gap-2 bg-[#25D366] text-white font-bold py-3 px-4 rounded-xl shadow-md no-underline w-full"
+                                  rel="noreferrer"
+                                  className="mt-2 flex items-center justify-center gap-2 bg-[#25D366] text-white font-bold py-3 px-4 rounded-xl shadow-md no-underline w-full hover:brightness-95 transition-all"
                                 >
                                   <svg
                                     width="18"
@@ -250,6 +257,7 @@ export default function ProChatbot() {
                             <a
                               href={href}
                               target="_blank"
+                              rel="noreferrer"
                               className="underline font-bold text-inherit"
                             >
                               {children}
@@ -264,28 +272,32 @@ export default function ProChatbot() {
                 </motion.div>
               ))}
 
-              {/* Roadmap Card */}
               {showRoadmap && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-4 bg-white rounded-2xl border-t-4 border-blue-600 shadow-lg my-2"
+                  className="p-4 bg-white rounded-2xl border-t-4 border-blue-600 shadow-xl my-2 border border-gray-100"
                 >
                   <div className="flex justify-between">
                     <h4 className="font-bold text-blue-800 text-[13px]">
                       🚀 Success Roadmap
                     </h4>
-                    <button onClick={() => setShowRoadmap(false)}>✕</button>
+                    <button
+                      onClick={() => setShowRoadmap(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      ✕
+                    </button>
                   </div>
-                  <div className="text-[11px] mt-2 space-y-1 text-gray-600">
-                    <p>
-                      <b>1. Test:</b> Clear the basic aptitude quiz.
+                  <div className="text-[11px] mt-2 space-y-2 text-gray-700">
+                    <p className="flex gap-2">
+                      <b>1.</b> Clear the basic aptitude quiz.
                     </p>
-                    <p>
-                      <b>2. Learn:</b> 3 months of hands-on skills.
+                    <p className="flex gap-2">
+                      <b>2.</b> 3 months of hands-on skills.
                     </p>
-                    <p>
-                      <b>3. Earn:</b> Graduate & start your career.
+                    <p className="flex gap-2">
+                      <b>3.</b> Graduate & start your career.
                     </p>
                   </div>
                 </motion.div>
@@ -303,7 +315,7 @@ export default function ProChatbot() {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area (Untouched) */}
+            {/* Input Area */}
             <div className="p-3 bg-white border-t border-gray-100 flex gap-2 items-center">
               <textarea
                 ref={inputRef}
@@ -339,7 +351,6 @@ export default function ProChatbot() {
         )}
       </AnimatePresence>
 
-      {/* Toggle Button (Untouched) */}
       {!isOpen && (
         <motion.button
           layoutId="chat-toggle"
@@ -361,14 +372,6 @@ export default function ProChatbot() {
               fillRule="evenodd"
               clipRule="evenodd"
               d="M12 1C10.8954 1 10 1.89543 10 3C10 3.74028 10.4022 4.38663 11 4.73244V7H6C4.34315 7 3 8.34315 3 10V20C3 21.6569 4.34315 23 6 23H18C19.6569 23 21 21.6569 21 20V10C21 8.34315 19.6569 7 18 7H13V4.73244C13.5978 4.38663 14 3.74028 14 3C14 1.89543 13.1046 1 12 1ZM5 10C5 9.44772 5.44772 9 6 9H7.38197L8.82918 11.8944C9.16796 12.572 9.86049 13 10.618 13H13.382C14.1395 13 14.832 12.572 15.1708 11.8944L16.618 9H18C18.5523 9 19 9.44772 19 10V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V10ZM13.382 11L14.382 9H9.61803L10.618 11H13.382Z"
-              fill="white"
-            />
-            <path
-              d="M1 14C0.447715 14 0 14.4477 0 15V17C0 17.5523 0.447715 18 1 18C1.55228 18 2 17.5523 2 17V15C2 14.4477 1.55228 14 1 14Z"
-              fill="white"
-            />
-            <path
-              d="M22 15C22 14.4477 22.4477 14 23 14C23.5523 14 24 14.4477 24 15V17C24 17.5523 23.5523 18 23 18C22.4477 18 22 17.5523 22 17V15Z"
               fill="white"
             />
           </svg>
