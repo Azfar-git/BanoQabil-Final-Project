@@ -1,63 +1,66 @@
 [
   {
     "id": 1,
-    "title": "Bano Qabil 5.0 Overview & Leadership",
+    "title": "Bano Qabil 5.0 Overview & Eligibility",
     "important": true,
-    "text": "Bano Qabil 5.0 is the latest mega-scale IT initiative by Alkhidmat Foundation, launched Jan 3, 2026, at Expo Centre Karachi. Led by Patron-in-Chief Hafiz Naeem ur Rehman and Chairman Naveed Ali Baig. It provides 100% free IT training for youth aged 14-30. Artificial Intelligence (AI) is now a mandatory component of every single course."
+    "text": "Launched Jan 3, 2026, Bano Qabil 5.0 is Pakistan's largest IT training program by Alkhidmat. It offers 100% FREE advanced IT courses with mandatory AI integration for youth aged 14-30. Both male and female students are eligible."
   },
   {
     "id": 2,
-    "title": "Karachi Campuses: North & Central Clusters",
-    "text": "Campuses in this region include: Al Huda Campus (North Karachi Power House), Anjuman Complex (Sakhi Hasan/North Nazimabad), Liaquatabad (JI Office), Nazimabad Block 5 (Pakistan Central Homeopathic Medical College), and Gulberg Campus."
+    "title": "Coding, AI & Programming Courses",
+    "text": "Tracks include: Generative AI, Web Development (MERN stack, Next.js), Python Automation, Flutter Mobile App Development, Game Development (Unity), and SQA (Software Quality Assurance). Every track includes mandatory AI tool training."
   },
   {
     "id": 3,
-    "title": "Karachi Campuses: East, Gulshan & Jauhar Clusters",
-    "text": "Campuses in this region include: Idara Noor-e-Haq (H.O. Quaideen Colony), Circle Social Welfare (13D Gulshan), Al-Aqsa (Gulshan), Safoora (Jauhar), Umer-e-Farooq Masjid (PIA Society), Bahadurabad (Escuela & Askari College), and PECHS Harmain School (Block 6)."
+    "title": "Business, Creative & E-commerce Courses",
+    "text": "Tracks include: Digital Marketing, Amazon FBA, Shopify, Graphic Design, UI/UX Design, Video Editing, and Freelancing. Students learn to earn on international platforms like Upwork and Fiverr."
   },
   {
     "id": 4,
-    "title": "Karachi Campuses: South, Lyari & West Clusters",
-    "text": "Campuses in this region include: Clifton (Punjab Chowrangi), Garden (Asa Jalal Complex), Lyari (Moosa Lane, Kharadar KMA Protech, HOL Kara Bai), SITE Metroville, Keamari (SKIT), Orangi Town 11.5, and Baldia Town (Piston College)."
+    "title": "Admission Process & Security Deposit Refund",
+    "important": true,
+    "text": "Registration steps: 1. Apply at banoqabil.pk 2. Pass the Aptitude Test 3. Clear the Interview 4. Pay the PKR 3,000 Refundable Security Deposit. The fee/deposit is returned in full only if you maintain 80% attendance and sit for the final exam."
   },
   {
     "id": 5,
-    "title": "Karachi Campuses: Malir, Korangi & Modern Hubs",
-    "text": "Campuses in this region include: Malir (Kausar Town), Korangi (Allah Wala Town), Landhi 6 (JI Office), Shah Faisal (Jamia Millia & Dr. Mehmood Hussain), Shah Latif Town, Bahria Town Karachi, Gulshan-e-Hadeed, and Gulshan-e-Maymar (Etawa & Sherwani Suites)."
+    "title": "Campuses: Central, East & Gulshan",
+    "text": "Locations: Idara Noor-e-Haq (Head Office at Quaideen Colony), Gulshan-e-Iqbal (Circle Social & Al-Aqsa), Bahadurabad (Escuela & Askari College), PECHS Block 6, and PIA Society Jauhar."
   },
   {
     "id": 6,
-    "title": "Nationwide Presence (86+ Campuses)",
-    "text": "Bano Qabil operates across Pakistan: Punjab (27 campuses including Lahore Gulberg III), KPK (33 including Peshawar, Swat, Mardan), Islamabad (10 centers), Balochistan (5 in Quetta), Sindh Interior (8 including Hyderabad/Sukkur), Gilgit-Baltistan (5), and Azad Kashmir (3)."
+    "title": "Campuses: North Karachi, West & Nazimabad",
+    "text": "Locations: North Karachi (Al Huda Power House), Sakhi Hasan (Anjuman Complex), Nazimabad (Homeopathic College), Orangi Town 11.5, Baldia Town (Piston College), and SITE Metroville."
   },
   {
     "id": 7,
-    "title": "Courses: AI, Software & Coding Path",
-    "text": "Advanced Courses: Generative AI (LLMs & RAG), Prompt Engineering, Web Development with AI, MERN Stack, Frontend (Next.js 15), Python (FastAPI), Flutter Mobile Apps, Unity Game Dev, SQA Automation, and No-Code AI Orchestration."
+    "title": "Campuses: South Karachi, Clifton & Lyari",
+    "text": "Locations: Clifton (Punjab Chowrangi), Garden, Lyari (Moosa Lane, Kharadar, HOL Kara Bai), and Keamari (SKIT)."
   },
   {
     "id": 8,
-    "title": "Courses: Marketing, E-Commerce & Creative Path",
-    "text": "Courses: Digital Marketing & Freelancing, Amazon FBA VA, Shopify, Daraz Ecosystem, UI/UX (Figma), Graphic Design, Video Editing (After Effects/Premiere), Content Writing, and Digital Journalism."
+    "title": "Campuses: Malir, Korangi & Bahria",
+    "text": "Locations: Malir (Kausar Town), Korangi (Allah Wala Town), Landhi 6, Shah Faisal Colony, Gulshan-e-Hadeed, and Bahria Town Karachi."
   },
   {
     "id": 9,
-    "title": "Admission Roadmap & Security Deposit",
-    "text": "The 5-step process: Online Registration (banoqabil.pk), Aptitude Test, Interview, Security Deposit, and Campus Selection. A PKR 3,000 security deposit is required, which is strictly refundable after course completion and exam appearance."
+    "title": "Jobs, Qabil.jobs & Incubation Centers",
+    "text": "Graduates gain access to the Qabil.jobs portal. We have specialized Incubation Centers for hands-on project building and portfolio development. Top performing students are connected to software houses for employment."
   },
   {
     "id": 10,
-    "title": "Career Services: Qabil.jobs & Incubation",
-    "text": "Qabil.jobs is the official job portal launched in Jan 2026 for digital CVs and job matching. Incubation Centers provide hands-on project support. Certifications are verified by SBTE, SDC, and LRN (International)."
+    "title": "Contact, WhatsApp Support & Location",
+    "text": "Head Office: Quaideen Colony, Karachi. Official WhatsApp Support: 0317-8226242. Email for queries: banoqabil.khi@alkhidmat.com."
   },
   {
     "id": 11,
-    "title": "Guidance: Course Selection Advice",
-    "text": "Students should choose Web Dev/AI for coding careers, Digital Marketing/Amazon for e-commerce business, or Graphic Design/Video Editing for creative fields. Every student is advised to start freelancing on Fiverr/Upwork during training."
+    "title": "One Course Enrollment Policy",
+    "important": true,
+    "text": "Strict Policy: You can only enroll in ONE course per batch. You cannot do two courses simultaneously. You must complete your current course before applying for another in the next session."
   },
   {
     "id": 12,
-    "title": "Mentorship: Student Success Strategy",
-    "text": "For maximum success, students must maintain 80% attendance, complete 3 hands-on projects in the incubation center, and attend Bano Qabil Job Fairs at Idara Noor-e-Haq."
+    "title": "Certification, Accreditation & Global Recognition",
+    "important": true,
+    "text": "Bano Qabil certificates are accredited by the Sindh Board of Technical Education (SBTE) and the Learning Resource Network (LRN) UK. These certifications are globally recognized and valid for job applications in Dubai, USA, and other international markets."
   }
 ]

@@ -4,72 +4,65 @@ import contextData from "../../context.json";
 const MODEL = "meta-llama/Llama-3.1-8B-Instruct";
 
 const buildSystemPrompt = (role, userMessage, userName) => {
-  const isStudent = role === "student"; 
+  const isStudent = role === "student";
 
   const relevantContext = contextData
-    .filter((item) => {
-      const keywords = item.title.toLowerCase().split(" ");
-      return (
-        keywords.some((kw) => userMessage.toLowerCase().includes(kw)) ||
-        item.important
-      );
+    .map((item) => {
+      let score = 0;
+      const lowerMsg = userMessage.toLowerCase();
+      const titleWords = item.title.toLowerCase().split(" ");
+      if (titleWords.some((word) => lowerMsg.includes(word))) score += 3;
+      if (
+        item.text.toLowerCase().includes(lowerMsg) ||
+        lowerMsg.includes(item.text.toLowerCase())
+      )
+        score += 1;
+      return { ...item, score };
     })
-    .slice(0, 10);
+    .filter((item) => item.score > 0 || item.important)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8);
 
   return `
-You are BanoQabil AI, the official mentor and assistant for BanoQabil.pk.
-${
-  isStudent
-    ? `USER STATUS: REGISTERED STUDENT. Name: ${userName}. Tone: Encouraging, mentorship-driven, and career-focused.`
-    : `USER STATUS: GUEST. Name: ${userName}. Tone: Professional, informative, and concise.`
-}
+You are **BanoQabil AI**, the official intelligent voice of Bano Qabil 5.0 (Launched Jan 2026).
+Your goal is to empower Pakistani youth with IT skills.
 
-STRICT RULES:
-1. ONLY use the CONTEXT provided. Do not invent details.
-2. If the user is a GUEST, focus on admissions, courses, and basic FAQs.
-3. If the user is a STUDENT, provide deeper guidance on career paths and course benefits.
-4. If information is missing, use the EXACT fallback message provided below.
+**USER CONTEXT:**
+- Status: ${isStudent ? "Registered Student" : "Guest / Aspiring Student"}
+- Name: ${userName}
 
-FORMATTING:
-- Use **Bold** for emphasis and titles.
-- Use bullet points for lists.
-- Keep responses under 4 sentences unless listing items.
+**BEHAVIORAL INSTRUCTIONS:**
+1. **AS A GUEST ASSISTANT:** If the user is a Guest, be extremely polite, welcoming, and helpful. Focus on the benefits of joining and guide them through the registration process found in the context.
+2. **AS A STUDENT MENTOR:** If the user is a Student, act as a **Senior Mentor and Friend**. Be direct and motivating. If they express struggle, remind them that "Skills are the only way to beat inflation" and push them to utilize the **Incubation Centers** or resources mentioned in the context.
+3. **ACCURACY:** Use ONLY the information provided in the **CONTEXT DATABASE** below. If the information is not there, do not guess. Say: "I don't have that specific info right now. Please [Contact Support]."
 
-SPECIAL TRIGGERS:
-- [MOOD:EMPATHY] if user is struggling/confused.
-- [MOOD:HYPED] if user is happy/greeting.
-- [COMMAND:ROADMAP] if a STUDENT asks about career paths or "what's next".
+**TECHNICAL CONSTRAINTS:**
+- **Length:** Keep responses concise (max 3-4 sentences).
+- **Moods:** - Append [MOOD:EMPATHY] for sad/struggling users.
+- Append [MOOD:HYPED] for excited/new users.
+- **UI Commands:** Append [COMMAND:ROADMAP] if the user asks for career paths or "which course to take."
 
-CONTEXT:
-${relevantContext.map((item) => `- **${item.title}:** ${item.text}`).join("\n")}
+**CONTEXT DATABASE:**
+${relevantContext.map((item) => `### ${item.title}\n${item.text}`).join("\n\n")}
 `;
 };
 
 export async function handler(event) {
   const fallback =
-    "I couldn't find an exact answer to your question in our database. Please [Contact Support on WhatsApp](https://wa.me/923178226242) for personalized help.";
+    "I couldn't find an exact answer. Please [Contact Support] for personalized help.";
   if (event.httpMethod !== "POST")
     return { statusCode: 405, body: "Method Not Allowed" };
 
   try {
     const { message, role, history, userName } = JSON.parse(event.body);
-    if (!message)
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ reply: "Message is required." }),
-      };
-
     const systemPrompt = buildSystemPrompt(
       role || "guest",
       message,
       userName || "Guest",
     );
-
-    // Construct history for the AI model
-    const chatHistory = (history || []).slice(-6).map((msg) => ({
-      role: msg.role,
-      content: msg.content,
-    }));
+    const chatHistory = (history || [])
+      .slice(-6)
+      .map((msg) => ({ role: msg.role, content: msg.content }));
 
     const response = await fetch(
       "https://router.huggingface.co/v1/chat/completions",
@@ -89,15 +82,12 @@ export async function handler(event) {
           ],
           temperature: 0.1,
           max_tokens: 450,
-          top_p: 0.9,
         }),
       },
     );
 
     const data = await response.json();
     let aiReply = data?.choices?.[0]?.message?.content || fallback;
-    if (aiReply.length < 5) aiReply = fallback;
-
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
@@ -106,9 +96,7 @@ export async function handler(event) {
   } catch {
     return {
       statusCode: 500,
-      body: JSON.stringify({
-        reply: "System is briefly offline. Please try again later.",
-      }),
+      body: JSON.stringify({ reply: "System offline. Try later." }),
     };
   }
 }
