@@ -1,52 +1,82 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../firebase/config';
-import { Mail, Lock, AlertCircle } from 'lucide-react';
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth, db } from "../firebase/config";
+import { doc, getDoc } from "firebase/firestore";
+import { Mail, Lock, AlertCircle } from "lucide-react";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  
+  const [error, setError] = useState("");
+
   const [formData, setFormData] = useState({
-    email: '',
-    password: ''
+    email: "",
+    password: "",
   });
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
-      await signInWithEmailAndPassword(auth, formData.email, formData.password);
-      navigate('/dashboard'); // Redirect to dashboard after login
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password,
+      );
+
+      const user = userCredential.user;
+
+      // Fetch user profile from Firestore to check approval status
+      const userDocRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userDocRef);
+
+      if (!userSnap.exists()) {
+        // No profile found — sign out and show error
+        await signOut(auth);
+        setError("User profile not found. Please contact support.");
+        return;
+      }
+
+      const userData = userSnap.data();
+      const status = userData.status || "pending";
+
+      if (status === "success") {
+        navigate("/dashboard");
+      } else {
+        // Not approved yet — sign out and inform user
+        await signOut(auth);
+        setError(
+          "Your account is pending approval. Please wait for admin to approve your registration.",
+        );
+      }
     } catch (error) {
-      console.error('Login error:', error);
-      
+      console.error("Login error:", error);
+
       switch (error.code) {
-        case 'auth/user-not-found':
-          setError('No account found with this email.');
+        case "auth/user-not-found":
+          setError("No account found with this email.");
           break;
-        case 'auth/wrong-password':
-          setError('Incorrect password.');
+        case "auth/wrong-password":
+          setError("Incorrect password.");
           break;
-        case 'auth/invalid-email':
-          setError('Invalid email address.');
+        case "auth/invalid-email":
+          setError("Invalid email address.");
           break;
-        case 'auth/user-disabled':
-          setError('This account has been disabled.');
+        case "auth/user-disabled":
+          setError("This account has been disabled.");
           break;
         default:
-          setError('Login failed. Please try again.');
+          setError("Login failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -69,7 +99,9 @@ const LoginPage = () => {
           {error && (
             <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
-              <p className="text-red-600 dark:text-red-400 font-medium">{error}</p>
+              <p className="text-red-600 dark:text-red-400 font-medium">
+                {error}
+              </p>
             </div>
           )}
 
@@ -110,7 +142,10 @@ const LoginPage = () => {
                   />
                 </div>
                 <div className="mt-2 text-right">
-                  <Link to="/forgot-password" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  >
                     Forgot password?
                   </Link>
                 </div>
@@ -121,8 +156,8 @@ const LoginPage = () => {
                 disabled={loading}
                 className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 ${
                   loading
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                 }`}
               >
                 {loading ? (
@@ -131,7 +166,7 @@ const LoginPage = () => {
                     Logging in...
                   </span>
                 ) : (
-                  'Login'
+                  "Login"
                 )}
               </button>
             </div>
@@ -139,8 +174,11 @@ const LoginPage = () => {
 
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <p className="text-center text-gray-600 dark:text-gray-300">
-              Don't have an account?{' '}
-              <Link to="/register" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+              Don't have an account?{" "}
+              <Link
+                to="/register"
+                className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              >
                 Register here
               </Link>
             </p>

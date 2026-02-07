@@ -223,9 +223,9 @@ const AdmissionRoadmap = () => {
                           {step.details.map((detail, idx) => (
                             <div
                               key={idx}
-                              className="flex items-center text-sm"
+                              className="flex items-start text-sm"
                             >
-                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                              <div className="w-2 h-2 bg-blue-500 rounded-full mr-3 mt-1.5 flex-shrink-0"></div>
                               <span className="text-gray-600 dark:text-gray-400">
                                 {detail}
                               </span>

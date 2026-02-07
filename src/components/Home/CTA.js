@@ -1,22 +1,24 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Award, Users, Clock } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { ArrowRight, Award, Users, Clock } from "lucide-react";
 
 const CTA = () => {
   return (
     <section className="section-padding bg-gradient-to-r from-blue-600 to-purple-600 text-white">
       <div className="text-center container-custom">
-        <div className=" gap-12 items-center"> {/*grid grid-cols-1 lg:grid-cols-2*/}
+        <div className=" gap-12 items-center">
+          {" "}
+          {/*grid grid-cols-1 lg:grid-cols-2*/}
           <div data-aos="fade-right">
             <h2 className="text-3xl md:text-4xl font-bold mb-6">
               Start Your IT Career Journey Today
             </h2>
             <p className="text-lg opacity-90 mb-8">
-              Join thousands of successful graduates who have transformed their careers 
-              with BanoQabil. Our comprehensive programs and expert guidance will help 
-              you achieve your professional goals.
+              Join thousands of successful graduates who have transformed their
+              careers with BanoQabil. Our comprehensive programs and expert
+              guidance will help you achieve your professional goals.
             </p>
-            
+
             <div className="space-y-4 mb-8">
               <div className="flex justify-center items-center space-x-3">
                 <Award className="w-5 h-5" />
@@ -31,10 +33,10 @@ const CTA = () => {
                 <span>Flexible Learning Schedule</span>
               </div>
             </div>
-            
+
             <div className="flex flex-col justify-center sm:flex-row gap-4">
               <Link
-                to="/contact"
+                to="/register"
                 className="bg-white text-blue-600 hover:bg-gray-100 font-medium py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 text-center"
               >
                 Apply Now
@@ -48,7 +50,6 @@ const CTA = () => {
               </Link>
             </div>
           </div>
-          
           {/* <div data-aos="fade-left" className="relative">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-8 border border-white/20">
               <h3 className="text-2xl font-bold mb-6">Limited Time Offer</h3>
