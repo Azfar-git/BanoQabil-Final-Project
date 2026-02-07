@@ -3,64 +3,153 @@
     "id": 1,
     "title": "Bano Qabil 5.0 Overview & Eligibility",
     "important": true,
+    "keywords": [
+      "age",
+      "limit",
+      "who can apply",
+      "male",
+      "female",
+      "free",
+      "cost",
+      "price"
+    ],
     "text": "Launched Jan 3, 2026, Bano Qabil 5.0 is Pakistan's largest IT training program by Alkhidmat. It offers 100% FREE advanced IT courses with mandatory AI integration for youth aged 14-30. Both male and female students are eligible."
   },
   {
     "id": 2,
     "title": "Coding, AI & Programming Courses",
+    "keywords": [
+      "web",
+      "app",
+      "python",
+      "game",
+      "unity",
+      "flutter",
+      "react",
+      "development",
+      "sqa",
+      "testing"
+    ],
     "text": "Tracks include: Generative AI, Web Development (MERN stack, Next.js), Python Automation, Flutter Mobile App Development, Game Development (Unity), and SQA (Software Quality Assurance). Every track includes mandatory AI tool training."
   },
   {
     "id": 3,
     "title": "Business, Creative & E-commerce Courses",
+    "keywords": [
+      "design",
+      "marketing",
+      "amazon",
+      "freelancing",
+      "video",
+      "graphics",
+      "earning",
+      "fiverr",
+      "upwork"
+    ],
     "text": "Tracks include: Digital Marketing, Amazon FBA, Shopify, Graphic Design, UI/UX Design, Video Editing, and Freelancing. Students learn to earn on international platforms like Upwork and Fiverr."
   },
   {
     "id": 4,
     "title": "Admission Process & Security Deposit Refund",
     "important": true,
+    "keywords": [
+      "how to apply",
+      "register",
+      "fee",
+      "money",
+      "charges",
+      "test",
+      "interview",
+      "refund",
+      "attendance"
+    ],
     "text": "Registration steps: 1. Apply at banoqabil.pk 2. Pass the Aptitude Test 3. Clear the Interview 4. Pay the PKR 3,000 Refundable Security Deposit. The fee/deposit is returned in full only if you maintain 80% attendance and sit for the final exam."
   },
   {
     "id": 5,
     "title": "Campuses: Central, East & Gulshan",
+    "keywords": [
+      "location",
+      "address",
+      "near me",
+      "bahadurabad",
+      "pechs",
+      "jauhar"
+    ],
     "text": "Locations: Idara Noor-e-Haq (Head Office at Quaideen Colony), Gulshan-e-Iqbal (Circle Social & Al-Aqsa), Bahadurabad (Escuela & Askari College), PECHS Block 6, and PIA Society Jauhar."
   },
   {
     "id": 6,
     "title": "Campuses: North Karachi, West & Nazimabad",
+    "keywords": [
+      "location",
+      "address",
+      "orangi",
+      "baldia",
+      "site",
+      "sakhi hasan"
+    ],
     "text": "Locations: North Karachi (Al Huda Power House), Sakhi Hasan (Anjuman Complex), Nazimabad (Homeopathic College), Orangi Town 11.5, Baldia Town (Piston College), and SITE Metroville."
   },
   {
     "id": 7,
     "title": "Campuses: South Karachi, Clifton & Lyari",
+    "keywords": ["location", "address", "keamari", "garden", "kharadar"],
     "text": "Locations: Clifton (Punjab Chowrangi), Garden, Lyari (Moosa Lane, Kharadar, HOL Kara Bai), and Keamari (SKIT)."
   },
   {
     "id": 8,
     "title": "Campuses: Malir, Korangi & Bahria",
+    "keywords": ["location", "address", "landhi", "shah faisal", "hadeed"],
     "text": "Locations: Malir (Kausar Town), Korangi (Allah Wala Town), Landhi 6, Shah Faisal Colony, Gulshan-e-Hadeed, and Bahria Town Karachi."
   },
   {
     "id": 9,
     "title": "Jobs, Qabil.jobs & Incubation Centers",
+    "keywords": [
+      "career",
+      "work",
+      "salary",
+      "internship",
+      "placement",
+      "software house"
+    ],
     "text": "Graduates gain access to the Qabil.jobs portal. We have specialized Incubation Centers for hands-on project building and portfolio development. Top performing students are connected to software houses for employment."
   },
   {
     "id": 10,
     "title": "Contact, WhatsApp Support & Location",
+    "keywords": [
+      "phone",
+      "number",
+      "email",
+      "help",
+      "issue",
+      "problem",
+      "support"
+    ],
     "text": "Head Office: Quaideen Colony, Karachi. Official WhatsApp Support: 0317-8226242. Email for queries: banoqabil.khi@alkhidmat.com."
   },
   {
     "id": 11,
     "title": "One Course Enrollment Policy",
     "important": true,
+    "keywords": ["two courses", "multiple", "double", "limit", "restriction"],
     "text": "Strict Policy: You can only enroll in ONE course per batch. You cannot do two courses simultaneously. You must complete your current course before applying for another in the next session."
   },
   {
     "id": 12,
-    "title": "Certification, Accreditation & Global Recognition",
+    "title": "Certification & Global Recognition",
     "important": true,
+    "keywords": [
+      "degree",
+      "diploma",
+      "value",
+      "international",
+      "sbte",
+      "lrn",
+      "uk"
+    ],
     "text": "Bano Qabil certificates are accredited by the Sindh Board of Technical Education (SBTE) and the Learning Resource Network (LRN) UK. These certifications are globally recognized and valid for job applications in Dubai, USA, and other international markets."
   }
 ]

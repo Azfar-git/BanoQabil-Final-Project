@@ -7,16 +7,27 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Env files
+# Private/Environment Files 
 .env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+# If you saved your Firebase JSON as a file, ignore it:
+*.json
+!package.json
+!package-lock.json
+!context.json
 
+# Dependencies
+node_modules/
 
-node_modules
+# Build outputs
 dist
 dist-ssr
-*.local
+build/
 
-# Editor directories and files
+# Editor/OS files
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -26,8 +37,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Local Netlify folder
-.netlify
-
 Thumbs.db
+
+# Netlify
+.netlify/

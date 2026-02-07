@@ -1,75 +1,138 @@
-import fetch from "node-fetch";
+/* eslint-disable no-undef */
+import admin from "firebase-admin";
 import contextData from "../../context.json";
+
+const initializeFirebase = () => {
+  if (admin.apps.length > 0) return admin.app();
+
+  try {
+    let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+    if (privateKey) {
+      privateKey = privateKey
+        .replace(/^['"](.*)['"]$/, "$1")
+        .replace(/\\n/g, "\n");
+    }
+
+    return admin.initializeApp({
+      credential: admin.credential.cert({
+        projectId: process.env.FIREBASE_PROJECT_ID,
+        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+        privateKey: privateKey,
+      }),
+    });
+  } catch (error) {
+    console.error("❌ Firebase Init Error:", error.message);
+    return null;
+  }
+};
 
 const MODEL = "meta-llama/Llama-3.1-8B-Instruct";
 
-const buildSystemPrompt = (role, userMessage, userName) => {
+const buildSystemPrompt = (
+  role,
+  userMessage,
+  userName,
+  contextDocs,
+  userCourse,
+) => {
   const isStudent = role === "student";
+  const contextString = contextDocs
+    .map((item) => `### ${item.title}\n${item.text}`)
+    .join("\n\n");
 
-  const relevantContext = contextData
+  // PERSONA SELECTION
+  const persona = isStudent
+    ? `You are a **Senior Mentor and Big Brother**. You have a direct, motivating, and protective vibe. You act like you've known the student throughout their journey.
+       - **MANDATORY Catchphrase:** If they express doubt, laziness, or struggle, you MUST use: "Skills beat inflation."
+       - **Action:** Push them toward the **Incubation Centers** for practical help.`
+    : `You are a **Polite and Welcoming Assistant**. You are professional, encouraging, and focused on recruitment.
+       - **Action:** Guide them to register for 100% FREE courses at banoqabil.pk.`;
+
+  return `
+You are **BanoQabil AI**, the official digital voice of Bano Qabil 5.0. 
+
+${persona}
+
+**USER PROFILE:**
+- Status: ${isStudent ? "Registered Student" : "Guest / Prospective Student"}
+- User Name: ${userName}
+- Current Course: ${isStudent ? userCourse : "Not Enrolled"}
+
+**STRICT BEHAVIORAL INSTRUCTIONS:**
+1. **MEMORY:** Reference their name (${userName}) and their course (${userCourse}) to make it personal.
+2. **SOURCE OF TRUTH:** Use ONLY the **CONTEXT DATABASE** provided below. If the answer isn't there, say: "I don't have that specific info right now. Please [Contact Support] for details."
+3. **CONCISENESS:** Keep responses to 2-3 sentences max. Do not ramble.
+4. **MOOD TAGS:** Start your reply with [MOOD:EMPATHY] for struggles or [MOOD:HYPED] for successes. Use ONLY ONE tag per message.
+5. **UI COMMANDS:** Include [COMMAND:ROADMAP] ONLY if they ask about their career path or "what's next."
+
+**CONTEXT DATABASE:**
+${contextString}
+`;
+};
+
+const getRelevantContext = (message) => {
+  const query = message.toLowerCase();
+  return contextData
     .map((item) => {
       let score = 0;
-      const lowerMsg = userMessage.toLowerCase();
-      const titleWords = item.title.toLowerCase().split(" ");
-      if (titleWords.some((word) => lowerMsg.includes(word))) score += 3;
-      if (
-        item.text.toLowerCase().includes(lowerMsg) ||
-        lowerMsg.includes(item.text.toLowerCase())
-      )
-        score += 1;
+      if (item.title.toLowerCase().includes(query)) score += 10;
+      if (item.keywords?.some((k) => query.includes(k.toLowerCase())))
+        score += 5;
+      if (item.text.toLowerCase().includes(query)) score += 2;
       return { ...item, score };
     })
     .filter((item) => item.score > 0 || item.important)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 8);
-
-  return `
-You are **BanoQabil AI**, the official intelligent voice of Bano Qabil 5.0 (Launched Jan 2026).
-Your goal is to empower Pakistani youth with IT skills.
-
-**USER CONTEXT:**
-- Status: ${isStudent ? "Registered Student" : "Guest / Aspiring Student"}
-- Name: ${userName}
-
-**BEHAVIORAL INSTRUCTIONS:**
-1. **AS A GUEST ASSISTANT:** If the user is a Guest, be extremely polite, welcoming, and helpful. Focus on the benefits of joining and guide them through the registration process found in the context.
-2. **AS A STUDENT MENTOR:** If the user is a Student, act as a **Senior Mentor and Friend**. Be direct and motivating. If they express struggle, remind them that "Skills are the only way to beat inflation" and push them to utilize the **Incubation Centers** or resources mentioned in the context.
-3. **ACCURACY:** Use ONLY the information provided in the **CONTEXT DATABASE** below. If the information is not there, do not guess. Say: "I don't have that specific info right now. Please [Contact Support]."
-
-**TECHNICAL CONSTRAINTS:**
-- **Length:** Keep responses concise (max 3-4 sentences).
-- **Moods:** - Append [MOOD:EMPATHY] for sad/struggling users.
-- Append [MOOD:HYPED] for excited/new users.
-- **UI Commands:** Append [COMMAND:ROADMAP] if the user asks for career paths or "which course to take."
-
-**CONTEXT DATABASE:**
-${relevantContext.map((item) => `### ${item.title}\n${item.text}`).join("\n\n")}
-`;
+    .slice(0, 6);
 };
 
 export async function handler(event) {
-  const fallback =
-    "I couldn't find an exact answer. Please [Contact Support] for personalized help.";
   if (event.httpMethod !== "POST")
     return { statusCode: 405, body: "Method Not Allowed" };
 
   try {
-    const { message, role, history, userName } = JSON.parse(event.body);
+    const { message, role, history, userName, userId } = JSON.parse(event.body);
+
+    // Initialize & Connect
+    const app = initializeFirebase();
+    const db = app ? admin.firestore() : null;
+
+    let userCourse = "their selected track";
+
+    // Fetch User Data from Firestore
+    if (db && role === "student" && (userId || userName)) {
+      try {
+        const userDoc = await db
+          .collection("users")
+          .doc(userId || userName)
+          .get();
+        if (userDoc.exists) {
+          userCourse = userDoc.data().course || userCourse;
+        }
+      } catch (e) {
+        console.error("DB Fetch Fail:", e.message);
+      }
+    }
+
+    const relevantDocs = getRelevantContext(message);
     const systemPrompt = buildSystemPrompt(
-      role || "guest",
+      role,
       message,
-      userName || "Guest",
+      userName,
+      relevantDocs,
+      userCourse,
     );
-    const chatHistory = (history || [])
-      .slice(-6)
-      .map((msg) => ({ role: msg.role, content: msg.content }));
+
+    const chatHistory = (history || []).slice(-10).map((msg) => ({
+      role: msg.sender === "ai" ? "assistant" : "user",
+      content: msg.text,
+    }));
 
     const response = await fetch(
       "https://router.huggingface.co/v1/chat/completions",
       {
         method: "POST",
         headers: {
-          //eslint-disable-next-line no-undef
           Authorization: `Bearer ${process.env.HF_TOKEN}`,
           "Content-Type": "application/json",
         },
@@ -80,23 +143,27 @@ export async function handler(event) {
             ...chatHistory,
             { role: "user", content: message },
           ],
-          temperature: 0.1,
-          max_tokens: 450,
+          temperature: 0.2, // Kept low for instruction following
+          max_tokens: 400,
         }),
       },
     );
 
     const data = await response.json();
-    let aiReply = data?.choices?.[0]?.message?.content || fallback;
+    const aiReply =
+      data?.choices?.[0]?.message?.content ||
+      "System pulse check... I'm still here! Try asking again.";
+
     return {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ reply: aiReply }),
     };
-  } catch {
+  } catch (error) {
+    console.error("Handler Error:", error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ reply: "System offline. Try later." }),
+      body: JSON.stringify({ reply: "System offline. [Contact Support]." }),
     };
   }
 }

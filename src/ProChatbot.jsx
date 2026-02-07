@@ -69,7 +69,9 @@ export default function ProChatbot() {
     if (!message.trim() || loading) return;
 
     const userMessage = message;
-    setMessages((prev) => [...prev, { sender: "user", text: userMessage }]);
+
+    const newHistory = [...messages, { sender: "user", text: userMessage }];
+    setMessages(newHistory);
     setMessage("");
     setLoading(true);
 
@@ -77,8 +79,15 @@ export default function ProChatbot() {
       const res = await fetch("/.netlify/functions/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage, role: userRole }),
+        body: JSON.stringify({
+          message: userMessage,
+          role: userRole,
+          history: messages,
+          userName: auth.currentUser?.displayName,
+          userId: auth.currentUser?.uid,
+        }),
       });
+
       const data = await res.json();
       let botReply = data.reply;
 
@@ -221,7 +230,6 @@ export default function ProChatbot() {
                           </strong>
                         ),
                         a: ({ href, children }) => {
-                          // Hide WhatsApp links from bubble
                           if (href?.includes("wa.me")) return null;
                           return (
                             <a
@@ -240,7 +248,6 @@ export default function ProChatbot() {
                     </ReactMarkdown>
                   </div>
 
-                  {/* BUTTON OUTSIDE BUBBLE */}
                   {msg.sender === "ai" &&
                     (msg.text.includes("wa.me") ||
                       msg.text.includes("[Contact Support]")) && (
