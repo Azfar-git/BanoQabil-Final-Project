@@ -1,18 +1,29 @@
-import React, { useState } from 'react';
-import { Box, TextField, Button, Avatar, Typography, IconButton, InputAdornment } from '@mui/material';
-import { Send as SendIcon, AttachFile as AttachFileIcon, EmojiEmotions as EmojiIcon } from '@mui/icons-material';
-import { motion } from 'framer-motion';
+import React, { useState } from "react";
+import {
+  Box,
+  TextField,
+  Button,
+  Avatar,
+  Typography,
+  IconButton,
+} from "@mui/material";
+import {
+  Send as SendIcon,
+  AttachFile as AttachFileIcon,
+  EmojiEmotions as EmojiIcon,
+} from "@mui/icons-material";
+import { motion } from "framer-motion";
 
-const CreatePost = ({ classId, onPostCreate }) => {
-  const [postContent, setPostContent] = useState('');
+const CreatePost = ({ onPostCreate }) => {
+  const [postContent, setPostContent] = useState("");
   const [attachments, setAttachments] = useState([]);
 
   const handlePost = () => {
     if (postContent.trim() || attachments.length > 0) {
       const newPost = {
         id: Date.now(),
-        author: 'You',
-        avatar: 'https://i.pravatar.cc/40?img=0',
+        author: "You",
+        avatar: "https://i.pravatar.cc/40?img=0",
         content: postContent,
         attachments: attachments,
         createdAt: new Date().toISOString(),
@@ -20,7 +31,7 @@ const CreatePost = ({ classId, onPostCreate }) => {
         comments: 0,
       };
       onPostCreate?.(newPost);
-      setPostContent('');
+      setPostContent("");
       setAttachments([]);
     }
   };
@@ -35,7 +46,10 @@ const CreatePost = ({ classId, onPostCreate }) => {
         {/* Header */}
         <Box className="flex items-center gap-3 mb-4">
           <Avatar src="https://i.pravatar.cc/40?img=0" />
-          <Typography variant="body2" className="text-gray-600 dark:text-gray-400">
+          <Typography
+            variant="body2"
+            className="text-gray-600 dark:text-gray-400"
+          >
             What's on your mind?
           </Typography>
         </Box>
@@ -49,18 +63,24 @@ const CreatePost = ({ classId, onPostCreate }) => {
           value={postContent}
           onChange={(e) => setPostContent(e.target.value)}
           variant="outlined"
-          className="mb-4"
+          sx={{ mb: 2 }}
         />
 
         {/* Attachments Preview */}
         {attachments.length > 0 && (
           <Box className="mb-4 p-3 bg-gray-50 dark:bg-gray-700 rounded">
-            <Typography variant="caption" className="font-semibold text-gray-700 dark:text-gray-300">
+            <Typography
+              variant="caption"
+              className="font-semibold text-gray-700 dark:text-gray-300"
+            >
               Attachments ({attachments.length})
             </Typography>
             <Box className="flex flex-wrap gap-2 mt-2">
               {attachments.map((file, index) => (
-                <Box key={index} className="px-3 py-1 bg-blue-100 dark:bg-blue-900 rounded text-sm">
+                <Box
+                  key={index}
+                  className="px-3 py-1 bg-blue-100 dark:bg-blue-900 rounded text-sm"
+                >
                   {file}
                 </Box>
               ))}
@@ -71,7 +91,13 @@ const CreatePost = ({ classId, onPostCreate }) => {
         {/* Action Bar */}
         <Box className="flex justify-between items-center">
           <Box className="flex gap-2">
-            <IconButton size="small" title="Attach File">
+            <IconButton
+              size="small"
+              title="Attach File"
+              onClick={() =>
+                setAttachments((prev) => [...prev, "demo-file.pdf"])
+              } // Added demo functionality
+            >
               <AttachFileIcon fontSize="small" />
             </IconButton>
             <IconButton size="small" title="Add Emoji">
@@ -79,7 +105,13 @@ const CreatePost = ({ classId, onPostCreate }) => {
             </IconButton>
           </Box>
           <Box className="flex gap-2">
-            <Button variant="outlined" onClick={() => setPostContent('')}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setPostContent("");
+                setAttachments([]);
+              }}
+            >
               Clear
             </Button>
             <Button

@@ -1,124 +1,124 @@
-import React, { useState } from 'react';
-import { Box, List, ListItem, ListItemIcon, ListItemText, Collapse, Typography, Avatar } from '@mui/material';
-import { ExpandLess, ExpandMore, Dashboard as DashboardIcon, School as SchoolIcon, Settings as SettingsIcon, Logout as LogoutIcon } from '@mui/icons-material';
-import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import { useTheme } from "../../context/ThemeContext"; // Double check path!
+import {
+  LayoutDashboard,
+  BookOpen,
+  Inbox,
+  Calendar,
+  CheckSquare,
+  BarChart3,
+  Settings,
+  Menu,
+  Moon,
+  Sun,
+} from "lucide-react";
 
-const Sidebar = () => {
-  const [expandedClass, setExpandedClass] = useState(null);
-  const [classes, setClasses] = useState([
-    { id: 1, name: 'Web Development', teacher: 'John Doe', unread: 2 },
-    { id: 2, name: 'Data Structures', teacher: 'Jane Smith', unread: 0 },
-    { id: 3, name: 'Advanced Math', teacher: 'Bob Johnson', unread: 5 },
-  ]);
+const menuItems = [
+  { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
+  { label: "Classroom", icon: BookOpen, href: "/classroom" },
+  { label: "Inbox", icon: Inbox, href: "/notifications" },
+  { label: "Calendar", icon: Calendar, href: "/calendar" },
+  { label: "To-Do", icon: CheckSquare, href: "/todo" },
+  { label: "Grades", icon: BarChart3, href: "/grades" },
+  { label: "Settings", icon: Settings, href: "/settings/profile" },
+];
 
-  const handleExpandClick = (classId) => {
-    setExpandedClass(expandedClass === classId ? null : classId);
-  };
-
-  const mainMenuItems = [
-    { icon: <DashboardIcon />, label: 'Dashboard', href: '/', color: 'text-blue-600' },
-    { icon: <SchoolIcon />, label: 'My Classes', href: '/classes', color: 'text-green-600' },
-  ];
+export default function Sidebar({ isOpen, onToggle }) {
+  const location = useLocation();
+  const { darkMode, toggleTheme } = useTheme();
 
   return (
-    <Box className="w-64 bg-white dark:bg-gray-800 h-screen overflow-y-auto border-r dark:border-gray-700">
-      {/* Logo/Header */}
-      <Box className="p-4 border-b dark:border-gray-700">
-        <Typography variant="h6" className="font-bold text-gray-900 dark:text-white">
-          📚 Classroom
-        </Typography>
-      </Box>
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 md:hidden"
+          onClick={onToggle}
+        />
+      )}
 
-      {/* Main Menu */}
-      <List className="p-0">
-        {mainMenuItems.map((item, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.1 }}
+      <aside
+        className={`fixed md:relative z-50 h-screen transition-all duration-300 ease-in-out flex flex-col border-r ${
+          darkMode
+            ? "bg-gray-900 border-gray-800 text-white"
+            : "bg-white border-gray-200 text-gray-900"
+        } ${isOpen ? "w-64 translate-x-0" : "w-0 -translate-x-full md:w-20 md:translate-x-0"}`}
+      >
+        <div className="h-16 flex items-center px-6 mb-4 mt-2">
+          <div
+            className={`flex items-center gap-3 transition-all ${!isOpen && "md:opacity-0 md:scale-0"}`}
           >
-            <ListItem button component={Link} to={item.href} className="hover:bg-gray-100 dark:hover:bg-gray-700">
-              <ListItemIcon className={item.color}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText primary={item.label} />
-            </ListItem>
-          </motion.div>
-        ))}
-      </List>
+            <div className="bg-blue-600 p-1.5 rounded-lg shrink-0">
+              <BookOpen className="text-white" size={20} />
+            </div>
+            <span className="font-bold text-lg whitespace-nowrap italic">
+              BQ Classroom
+            </span>
+          </div>
+        </div>
 
-      <Box className="border-t dark:border-gray-700 p-4">
-        <Typography variant="caption" className="font-semibold text-gray-700 dark:text-gray-300 block mb-3">
-          YOUR CLASSES
-        </Typography>
-
-        {/* Classes List */}
-        <List className="p-0">
-          {classes.map((classItem, index) => (
-            <motion.div key={classItem.id}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: index * 0.05 }}
-            >
-              <ListItem
-                button
-                onClick={() => handleExpandClick(classItem.id)}
-                className="hover:bg-gray-100 dark:hover:bg-gray-700"
+        <nav className="flex-1 overflow-y-auto px-3 space-y-1">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.label}
+                to={item.href}
+                className={`flex items-center gap-4 px-3 py-2.5 rounded-xl transition-all group ${
+                  isActive
+                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                    : darkMode
+                      ? "text-gray-400 hover:bg-gray-800 hover:text-white"
+                      : "text-gray-600 hover:bg-gray-50 hover:text-blue-600"
+                }`}
               >
-                <ListItemIcon>
-                  <Avatar sx={{ width: 24, height: 24, fontSize: '0.75rem' }}>
-                    {classItem.name.charAt(0)}
-                  </Avatar>
-                </ListItemIcon>
-                <ListItemText
-                  primary={
-                    <Typography variant="body2" className="truncate">
-                      {classItem.name}
-                    </Typography>
-                  }
-                  secondary={classItem.unread > 0 && <Chip label={classItem.unread} size="small" color="primary" />}
-                />
-                {expandedClass === classItem.id ? <ExpandLess /> : <ExpandMore />}
-              </ListItem>
-              <Collapse in={expandedClass === classItem.id} timeout="auto" unmountOnExit>
-                <List component="div" disablePadding className="bg-gray-50 dark:bg-gray-900">
-                  <ListItem button className="pl-8 hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <ListItemText primary="Stream" primaryTypographyProps={{ variant: 'caption' }} />
-                  </ListItem>
-                  <ListItem button className="pl-8 hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <ListItemText primary="Classwork" primaryTypographyProps={{ variant: 'caption' }} />
-                  </ListItem>
-                  <ListItem button className="pl-8 hover:bg-gray-100 dark:hover:bg-gray-800">
-                    <ListItemText primary="Grades" primaryTypographyProps={{ variant: 'caption' }} />
-                  </ListItem>
-                </List>
-              </Collapse>
-            </motion.div>
-          ))}
-        </List>
-      </Box>
+                <div className="shrink-0">
+                  <Icon size={20} />
+                </div>
+                <span
+                  className={`text-sm font-medium transition-opacity ${isOpen ? "opacity-100" : "opacity-0 md:hidden"}`}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
 
-      {/* Settings Section */}
-      <Box className="border-t dark:border-gray-700 mt-auto p-4">
-        <List className="p-0">
-          <ListItem button className="hover:bg-gray-100 dark:hover:bg-gray-700">
-            <ListItemIcon className="text-gray-600 dark:text-gray-400">
-              <SettingsIcon />
-            </ListItemIcon>
-            <ListItemText primary="Settings" primaryTypographyProps={{ variant: 'body2' }} />
-          </ListItem>
-          <ListItem button className="text-red-600 hover:bg-red-50 dark:hover:bg-red-900">
-            <ListItemIcon className="text-red-600">
-              <LogoutIcon />
-            </ListItemIcon>
-            <ListItemText primary="Logout" primaryTypographyProps={{ variant: 'body2' }} />
-          </ListItem>
-        </List>
-      </Box>
-    </Box>
+        <div
+          className={`p-4 border-t ${darkMode ? "border-gray-800" : "border-gray-100"}`}
+        >
+          <button
+            onClick={toggleTheme}
+            className={`w-full flex items-center gap-4 px-3 py-2.5 rounded-xl transition-all ${
+              darkMode
+                ? "hover:bg-gray-800 text-yellow-400"
+                : "hover:bg-gray-100 text-indigo-600"
+            }`}
+          >
+            <div className={`shrink-0 ${!isOpen && "md:mx-auto"}`}>
+              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+            </div>
+            {isOpen && (
+              <span className="text-sm font-medium">
+                {darkMode ? "Light" : "Dark"} Mode
+              </span>
+            )}
+          </button>
+        </div>
+      </aside>
+
+      {/* The Hamburger Button */}
+      <button
+        onClick={onToggle}
+        className={`fixed top-4 z-[60] p-2 rounded-xl border transition-all duration-300 ${
+          isOpen ? "left-56 md:left-[238px]" : "left-4"
+        } ${darkMode ? "bg-gray-800 border-gray-700 text-white hover:bg-gray-700" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50 shadow-md"}`}
+      >
+        <Menu size={20} />
+      </button>
+    </>
   );
-};
-
-export default Sidebar;
+}
