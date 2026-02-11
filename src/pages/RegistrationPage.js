@@ -1,68 +1,80 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
-import { auth, db } from '../firebase/config';
-import { User, Mail, Lock, Phone, MapPin, Calendar, BookOpen, AlertCircle, CheckCircle } from 'lucide-react';
+import React, { useContext, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc, where, query } from "firebase/firestore";
+import { auth, db } from "../firebase/config";
+import {
+  User,
+  Mail,
+  Lock,
+  Phone,
+  MapPin,
+  BookOpen,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
+import RolesContext from "../contexts/rolesContext/rolesContext";
+import { roles as userRole } from "../constants";
 
 const RegistrationPage = () => {
   const navigate = useNavigate();
+  const { roles } = useContext(RolesContext);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   // Form state
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: '',
-    address: '',
-    dateOfBirth: '',
-    education: '',
-    courseInterest: '',
-    agreeToTerms: false
+    fullName: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
+    address: "",
+    dateOfBirth: "",
+    education: "",
+    courseInterest: "",
+    agreeToTerms: false,
   });
 
   // Course options
   const courseOptions = [
-    'Web Development',
-    'Mobile App Development',
-    'Data Science',
-    'Artificial Intelligence',
-    'Digital Marketing',
-    'Graphic Design',
-    'Cyber Security',
-    'UI/UX Design'
+    "Web Development",
+    "Mobile App Development",
+    "Data Science",
+    "Artificial Intelligence",
+    "Digital Marketing",
+    "Graphic Design",
+    "Cyber Security",
+    "UI/UX Design",
   ];
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'checkbox' ? checked : value
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
     // Validation
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     if (!formData.agreeToTerms) {
-      setError('You must agree to the terms and conditions');
+      setError("You must agree to the terms and conditions");
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError("Password must be at least 6 characters");
       return;
     }
 
@@ -73,13 +85,14 @@ const RegistrationPage = () => {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
-        formData.password
+        formData.password,
       );
 
       const user = userCredential.user;
+      const getRole = roles.find((item) => item.name === userRole.students);
 
       // 2. Save additional user data to Firestore
-      await setDoc(doc(db, 'users', user.uid), {
+      await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         fullName: formData.fullName,
         email: formData.email,
@@ -89,36 +102,41 @@ const RegistrationPage = () => {
         education: formData.education,
         courseInterest: formData.courseInterest,
         createdAt: new Date().toISOString(),
-        role: 'student',
-        status: 'pending'
+        // roleId: getRole.id,
+        // roleName: getRole.name,
+        status: "pending",
       });
 
-      setSuccess('Registration successful! Redirecting to login...');
-      
+      setSuccess("Registration successful! Redirecting to login...");
+
       // Redirect to login page after 2 seconds
       setTimeout(() => {
-        navigate('/login');
+        navigate("/login");
       }, 2000);
-
     } catch (error) {
-      console.error('Registration error:', error);
-      
+      console.error("Registration error:", error);
+      setError(error.message);
+
       // Handle specific Firebase errors
       switch (error.code) {
-        case 'auth/email-already-in-use':
-          setError('This email is already registered. Please use a different email or login.');
+        case "auth/email-already-in-use":
+          setError(
+            "This email is already registered. Please use a different email or login.",
+          );
           break;
-        case 'auth/invalid-email':
-          setError('Invalid email address.');
+        case "auth/invalid-email":
+          setError("Invalid email address.");
           break;
-        case 'auth/weak-password':
-          setError('Password is too weak. Please use a stronger password.');
+        case "auth/weak-password":
+          setError("Password is too weak. Please use a stronger password.");
           break;
-        case 'auth/operation-not-allowed':
-          setError('Email/password accounts are not enabled. Please contact support.');
+        case "auth/operation-not-allowed":
+          setError(
+            "Email/password accounts are not enabled. Please contact support.",
+          );
           break;
         default:
-          setError('Registration failed. Please try again.');
+          setError("Registration failed. Please try again.");
       }
     } finally {
       setLoading(false);
@@ -149,7 +167,9 @@ const RegistrationPage = () => {
                   <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
                     <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 mt-0.5" />
                     <div>
-                      <p className="text-red-600 dark:text-red-400 font-medium">{error}</p>
+                      <p className="text-red-600 dark:text-red-400 font-medium">
+                        {error}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -158,7 +178,9 @@ const RegistrationPage = () => {
                   <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-3">
                     <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5" />
                     <div>
-                      <p className="text-green-600 dark:text-green-400 font-medium">{success}</p>
+                      <p className="text-green-600 dark:text-green-400 font-medium">
+                        {success}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -295,7 +317,10 @@ const RegistrationPage = () => {
                       >
                         <option value="">Select Course</option>
                         {courseOptions.map((course, index) => (
-                          <option key={index} value={course.toLowerCase().replace(/\s+/g, '-')}>
+                          <option
+                            key={index}
+                            value={course.toLowerCase().replace(/\s+/g, "-")}
+                          >
                             {course}
                           </option>
                         ))}
@@ -359,16 +384,26 @@ const RegistrationPage = () => {
                       onChange={handleChange}
                       className="mt-1"
                     />
-                    <label htmlFor="agreeToTerms" className="text-sm text-gray-700 dark:text-gray-300">
-                      I agree to the{' '}
-                      <Link to="/terms" className="text-blue-600 dark:text-blue-400 hover:underline">
+                    <label
+                      htmlFor="agreeToTerms"
+                      className="text-sm text-gray-700 dark:text-gray-300"
+                    >
+                      I agree to the{" "}
+                      <Link
+                        to="/terms"
+                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                      >
                         Terms and Conditions
-                      </Link>{' '}
-                      and{' '}
-                      <Link to="/privacy" className="text-blue-600 dark:text-blue-400 hover:underline">
+                      </Link>{" "}
+                      and{" "}
+                      <Link
+                        to="/privacy"
+                        className="text-blue-600 dark:text-blue-400 hover:underline"
+                      >
                         Privacy Policy
-                      </Link>{' '}
-                      of Bano Qabil. I understand that my information will be used for educational purposes only.
+                      </Link>{" "}
+                      of Bano Qabil. I understand that my information will be
+                      used for educational purposes only.
                     </label>
                   </div>
                 </div>
@@ -379,8 +414,8 @@ const RegistrationPage = () => {
                   disabled={loading}
                   className={`w-full py-3 px-6 rounded-lg font-semibold text-white transition-all duration-300 ${
                     loading
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700'
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
                   }`}
                 >
                   {loading ? (
@@ -389,15 +424,18 @@ const RegistrationPage = () => {
                       Processing...
                     </span>
                   ) : (
-                    'Register Now'
+                    "Register Now"
                   )}
                 </button>
 
                 {/* Login Link */}
                 <div className="mt-6 text-center">
                   <p className="text-gray-600 dark:text-gray-300">
-                    Already have an account?{' '}
-                    <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                    Already have an account?{" "}
+                    <Link
+                      to="/login"
+                      className="text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                    >
                       Login here
                     </Link>
                   </p>

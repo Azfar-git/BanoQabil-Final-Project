@@ -17,6 +17,7 @@ import RegistrationPage from "./pages/RegistrationPage";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import ScrollToTop from "./components/Common/ScrollToTop";
+import ProChatBot from "./ProChatBot";
 
 function App() {
   useEffect(() => {
@@ -27,25 +28,28 @@ function App() {
   }, []);
 
   return (
-    <ThemeProvider>
-      <Router>
-        <ScrollToTop />
-        <Layout>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/courses" element={<CoursesPage />} />
-            <Route path="/faculty" element={<FacultyPage />} />
-            <Route path="/campuses" element={<CampusesPage />} />
-            <Route path="/news" element={<NewsPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/register" element={<RegistrationPage />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-          </Routes>
-        </Layout>
-      </Router>
-    </ThemeProvider>
+    <>
+      <ProChatBot />
+      <ThemeProvider>
+        <Router>
+          <ScrollToTop />
+          <Layout>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/courses" element={<CoursesPage />} />
+              <Route path="/faculty" element={<FacultyPage />} />
+              <Route path="/campuses" element={<CampusesPage />} />
+              <Route path="/news" element={<NewsPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
+              <Route path="/register" element={<RegistrationPage />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+            </Routes>
+          </Layout>
+        </Router>
+      </ThemeProvider>
+    </>
   );
 }
 
