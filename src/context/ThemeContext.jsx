@@ -1,6 +1,6 @@
 import React, { createContext, useContext } from "react";
 
-export const ThemeContext = createContext();
+const ThemeContext = createContext(null);
 
 export function CustomThemeProvider({ children, value }) {
   return (
@@ -11,7 +11,7 @@ export function CustomThemeProvider({ children, value }) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) {
-    throw new Error("useTheme must be used within a CustomThemeProvider");
+    throw new Error("useTheme must be used within CustomThemeProvider");
   }
   return context;
 }

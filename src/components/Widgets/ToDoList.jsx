@@ -1,26 +1,46 @@
-import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  TextField, 
-  Button, 
-  List, 
-  ListItem, 
-  ListItemIcon, 
+import React, { useState } from "react";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  List,
+  ListItem,
+  ListItemIcon,
   ListItemText,
   IconButton,
-  Checkbox 
-} from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, CheckCircle as CheckIcon, Circle as UncheckIcon } from '@mui/icons-material';
-import { motion } from 'framer-motion';
+  Checkbox,
+} from "@mui/material";
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  CheckCircle as CheckIcon,
+  Circle as UncheckIcon,
+} from "@mui/icons-material";
+import { motion } from "framer-motion";
 
-const ToDoList = () => {
+const ToDoList = ({ darkMode }) => {
   const [todos, setTodos] = useState([
-    { id: 1, title: 'Review student submissions', completed: false, date: '2026-01-28' },
-    { id: 2, title: 'Create assignment for next week', completed: true, date: '2026-01-27' },
-    { id: 3, title: 'Grade midterm exams', completed: false, date: '2026-01-30' },
+    {
+      id: 1,
+      title: "Review student submissions",
+      completed: false,
+      date: "2026-01-28",
+    },
+    {
+      id: 2,
+      title: "Create assignment for next week",
+      completed: true,
+      date: "2026-01-27",
+    },
+    {
+      id: 3,
+      title: "Grade midterm exams",
+      completed: false,
+      date: "2026-01-30",
+    },
   ]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState("");
 
   const handleAddTodo = () => {
     if (inputValue.trim()) {
@@ -30,18 +50,18 @@ const ToDoList = () => {
           id: Date.now(),
           title: inputValue,
           completed: false,
-          date: new Date().toISOString().split('T')[0],
+          date: new Date().toISOString().split("T")[0],
         },
       ]);
-      setInputValue('');
+      setInputValue("");
     }
   };
 
   const handleToggleTodo = (id) => {
     setTodos(
       todos.map((todo) =>
-        todo.id === id ? { ...todo, completed: !todo.completed } : todo
-      )
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo,
+      ),
     );
   };
 
@@ -58,21 +78,38 @@ const ToDoList = () => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Box className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <Box
+        className={`rounded-lg shadow-md p-6 transition-colors ${
+          darkMode ? "bg-gray-900" : "bg-white"
+        }`}
+      >
+        {/* Header */}
         <Box className="flex justify-between items-center mb-4">
-          <Typography variant="h6" className="font-semibold text-gray-900 dark:text-white">
+          <Typography
+            variant="h6"
+            className={`font-semibold ${
+              darkMode ? "text-gray-100" : "text-gray-900"
+            }`}
+          >
             To-Do List
           </Typography>
-          <Typography variant="caption" className="text-gray-500 dark:text-gray-400">
+          <Typography
+            variant="caption"
+            className={`${darkMode ? "text-gray-400" : "text-gray-500"}`}
+          >
             {completedCount} of {totalCount} completed
           </Typography>
         </Box>
 
         {/* Progress bar */}
-        <Box className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 mb-4">
+        <Box
+          className={`w-full rounded-full h-2 mb-4 ${darkMode ? "bg-gray-700" : "bg-gray-200"}`}
+        >
           <Box
             className="bg-blue-500 h-2 rounded-full transition-all duration-300"
-            style={{ width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%` }}
+            style={{
+              width: `${totalCount > 0 ? (completedCount / totalCount) * 100 : 0}%`,
+            }}
           />
         </Box>
 
@@ -83,14 +120,17 @@ const ToDoList = () => {
             placeholder="Add a new task..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleAddTodo()}
+            onKeyPress={(e) => e.key === "Enter" && handleAddTodo()}
             fullWidth
             variant="outlined"
-            className="dark:bg-gray-700"
+            className={`${darkMode ? "bg-gray-800 text-gray-100" : "bg-white"}`}
+            InputProps={{
+              className: darkMode ? "text-gray-100" : "text-gray-900",
+            }}
           />
-          <Button 
-            variant="contained" 
-            color="primary" 
+          <Button
+            variant="contained"
+            color="primary"
             onClick={handleAddTodo}
             startIcon={<AddIcon />}
           >
@@ -101,7 +141,10 @@ const ToDoList = () => {
         {/* Todo List */}
         <List className="max-h-80 overflow-y-auto">
           {todos.length === 0 ? (
-            <Typography variant="body2" className="text-center text-gray-500 dark:text-gray-400 py-4">
+            <Typography
+              variant="body2"
+              className={`text-center py-4 ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+            >
               No tasks yet. Add one to get started!
             </Typography>
           ) : (
@@ -113,16 +156,23 @@ const ToDoList = () => {
                 transition={{ delay: index * 0.05 }}
               >
                 <ListItem
-                  className={`rounded mb-2 ${
+                  className={`rounded mb-2 transition-colors ${
                     todo.completed
-                      ? 'bg-gray-100 dark:bg-gray-700'
-                      : 'bg-gray-50 dark:bg-gray-900'
+                      ? darkMode
+                        ? "bg-gray-700"
+                        : "bg-gray-100"
+                      : darkMode
+                        ? "bg-gray-800"
+                        : "bg-gray-50"
                   }`}
                   secondaryAction={
                     <IconButton
                       edge="end"
                       onClick={() => handleDeleteTodo(todo.id)}
                       size="small"
+                      className={
+                        darkMode ? "text-red-400 hover:text-red-500" : ""
+                      }
                     >
                       <DeleteIcon fontSize="small" />
                     </IconButton>
@@ -134,17 +184,27 @@ const ToDoList = () => {
                       onChange={() => handleToggleTodo(todo.id)}
                       icon={<UncheckIcon />}
                       checkedIcon={<CheckIcon />}
+                      className={darkMode ? "text-blue-400" : ""}
                     />
                   </ListItemIcon>
                   <ListItemText
                     primary={
                       <Typography
-                        className={todo.completed ? 'line-through text-gray-500' : ''}
+                        className={`${
+                          todo.completed ? "line-through" : ""
+                        } ${darkMode ? "text-gray-100" : ""}`}
                       >
                         {todo.title}
                       </Typography>
                     }
-                    secondary={new Date(todo.date).toLocaleDateString()}
+                    secondary={
+                      <Typography
+                        className={darkMode ? "text-gray-400" : "text-gray-500"}
+                        variant="caption"
+                      >
+                        {new Date(todo.date).toLocaleDateString()}
+                      </Typography>
+                    }
                   />
                 </ListItem>
               </motion.div>

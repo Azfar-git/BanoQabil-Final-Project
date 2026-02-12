@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -45,6 +45,22 @@ export default function ToDoPage() {
   const [todos, setTodos] = useState(DUMMY_TODOS);
   const [newTodo, setNewTodo] = useState("");
 
+  // ✅ GLOBAL DARK MODE WATCHER
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark"),
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
+
   const toggleComplete = (id) => {
     setTodos(
       todos.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)),
@@ -58,8 +74,6 @@ export default function ToDoPage() {
   const addTodo = (e) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
-
-    // ✅ Prepends the new task to the top of the list
     setTodos([
       {
         id: Date.now(),
@@ -76,13 +90,27 @@ export default function ToDoPage() {
   const progressPercentage =
     todos.length > 0 ? (completedCount / todos.length) * 100 : 0;
 
+  // ✅ THEME MAPPING
+  const theme = {
+    pageBg: isDark ? "!bg-gray-900" : "!bg-[#f8fafc]",
+    card: isDark
+      ? "!bg-gray-800 !border-gray-700"
+      : "!bg-white !border-slate-200",
+    textMain: isDark ? "!text-gray-100" : "!text-[#1e293b]",
+    textMuted: isDark ? "!text-gray-400" : "!text-[#64748b]",
+    inputBg: isDark ? "#374151" : "#f1f5f9",
+    progressEmpty: isDark ? "bg-gray-700" : "bg-slate-100",
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Box className="min-h-screen bg-[#f8fafc] p-6">
+      <Box
+        className={`min-h-screen p-6 transition-colors duration-300 ${theme.pageBg}`}
+      >
         <Box className="max-w-2xl mx-auto">
           {/* Header & Stats */}
           <Box className="mb-8">
@@ -94,21 +122,23 @@ export default function ToDoPage() {
             </div>
             <Typography
               variant="h4"
-              className="font-extrabold text-[#1e293b] tracking-tight mb-4"
+              className={`font-extrabold tracking-tight mb-4 ${theme.textMain}`}
             >
               To-Do List
             </Typography>
 
-            <Box className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <Box className={`p-4 rounded-2xl border shadow-sm ${theme.card}`}>
               <div className="flex justify-between items-center mb-2">
-                <Typography className="text-sm font-bold text-[#64748b]">
+                <Typography className={`text-sm font-bold ${theme.textMuted}`}>
                   {completedCount} of {todos.length} Tasks Completed
                 </Typography>
                 <Typography className="text-sm font-black text-[#2563eb]">
                   {Math.round(progressPercentage)}%
                 </Typography>
               </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div
+                className={`w-full ${theme.progressEmpty} h-2 rounded-full overflow-hidden`}
+              >
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${progressPercentage}%` }}
@@ -119,8 +149,10 @@ export default function ToDoPage() {
           </Box>
 
           {/* Add Todo Input */}
-          <Card className="rounded-2xl border border-slate-200 shadow-sm mb-6 overflow-hidden">
-            <CardContent className="p-4 bg-white">
+          <Card
+            className={`rounded-2xl border shadow-sm mb-6 overflow-hidden ${theme.card}`}
+          >
+            <CardContent className="p-4">
               <form onSubmit={addTodo} className="flex gap-3">
                 <TextField
                   fullWidth
@@ -132,8 +164,13 @@ export default function ToDoPage() {
                   sx={{
                     "& .MuiOutlinedInput-root": {
                       borderRadius: "12px",
-                      backgroundColor: "#f1f5f9",
+                      backgroundColor: theme.inputBg,
+                      color: isDark ? "#f3f4f6" : "#1e293b",
                       "& fieldset": { border: "none" },
+                    },
+                    "& .MuiInputBase-input::placeholder": {
+                      color: isDark ? "#9ca3af" : "#64748b",
+                      opacity: 1,
                     },
                   }}
                 />
@@ -163,8 +200,10 @@ export default function ToDoPage() {
                   <Card
                     className={`rounded-xl border transition-all duration-200 group ${
                       todo.completed
-                        ? "bg-slate-50/50 border-slate-100"
-                        : "bg-white border-slate-200 shadow-sm"
+                        ? isDark
+                          ? "bg-gray-800/40 border-gray-700"
+                          : "bg-slate-50/50 border-slate-100"
+                        : theme.card
                     }`}
                   >
                     <CardContent className="flex gap-4 items-center p-4 !pb-4">
@@ -172,7 +211,7 @@ export default function ToDoPage() {
                         checked={todo.completed}
                         onChange={() => toggleComplete(todo.id)}
                         sx={{
-                          color: "#cbd5e1",
+                          color: isDark ? "#4b5563" : "#cbd5e1",
                           "&.Mui-checked": { color: "#2563eb" },
                         }}
                       />
@@ -182,13 +221,15 @@ export default function ToDoPage() {
                           className={`font-bold transition-all ${
                             todo.completed
                               ? "line-through text-[#94a3b8]"
-                              : "text-[#1e293b]"
+                              : theme.textMain
                           }`}
                         >
                           {todo.title}
                         </Typography>
 
-                        <div className="flex items-center gap-1.5 mt-1 text-[#64748b]">
+                        <div
+                          className={`flex items-center gap-1.5 mt-1 ${theme.textMuted}`}
+                        >
                           <CalendarIcon size={12} />
                           <span className="text-[11px] font-semibold uppercase tracking-wider">
                             Due {formatDate(todo.dueDate)}
@@ -199,7 +240,11 @@ export default function ToDoPage() {
                       <IconButton
                         size="small"
                         onClick={() => deleteTodo(todo.id)}
-                        className="opacity-0 group-hover:opacity-100 text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-all"
+                        className={`opacity-0 group-hover:opacity-100 transition-all ${
+                          isDark
+                            ? "text-gray-500 hover:text-rose-400"
+                            : "text-slate-300 hover:text-rose-500"
+                        } hover:bg-rose-50/10`}
                       >
                         <Trash2 size={18} />
                       </IconButton>
@@ -211,8 +256,11 @@ export default function ToDoPage() {
 
             {todos.length === 0 && (
               <Box className="text-center py-12">
-                <ListTodo size={48} className="mx-auto text-slate-200 mb-4" />
-                <Typography className="text-slate-400 font-medium">
+                <ListTodo
+                  size={48}
+                  className={`mx-auto mb-4 ${isDark ? "text-gray-700" : "text-slate-200"}`}
+                />
+                <Typography className={theme.textMuted}>
                   Your list is clear!
                 </Typography>
               </Box>

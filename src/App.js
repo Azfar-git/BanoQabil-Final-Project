@@ -14,6 +14,7 @@ import { NotificationProvider } from "./context/NotificationContext";
 import LoadingSpinner from "./components/Common/LoadingSpinner";
 import Layout from "./components/Layout/Layout";
 import ProtectedRoute from "./components/Common/ProtectedRoute";
+import Classroom from "./pages/Classroom/Classroom";
 
 // Lazy loaded components
 const Dashboard = lazy(() => import("./pages/Main/Dashboard"));
@@ -51,7 +52,6 @@ function App() {
     return localStorage.getItem("bq-theme") === "dark";
   });
 
-  // This effect bridges the gap between MUI state and Tailwind CSS
   useEffect(() => {
     const root = window.document.documentElement;
     if (darkMode) {
@@ -84,7 +84,7 @@ function App() {
                         element={<NotificationsPage />}
                       />
                       <Route path="/classroom/:id">
-                        <Route path="stream" element={<ClassroomStream />} />
+                        <Route path="stream" element={<Classroom />} />
                         <Route path="work" element={<ClassroomWork />} />
                         <Route path="people" element={<ClassroomPeople />} />
                         <Route path="grades" element={<ClassroomGrades />} />

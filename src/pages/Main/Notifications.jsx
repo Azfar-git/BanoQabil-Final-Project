@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -12,7 +12,23 @@ import { DUMMY_NOTIFICATIONS } from "../../data/dummyData";
 import { Bell, Trash2, CheckCheck, Check, Inbox } from "lucide-react";
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = React.useState(DUMMY_NOTIFICATIONS);
+  const [notifications, setNotifications] = useState(DUMMY_NOTIFICATIONS);
+
+  // ✅ GLOBAL DARK MODE WATCHER
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark"),
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   const markAsRead = (id) => {
     setNotifications(
@@ -30,13 +46,25 @@ export default function NotificationsPage() {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
+  // ✅ THEME MAPPING
+  const theme = {
+    pageBg: isDark ? "!bg-gray-900" : "!bg-[#f8fafc]",
+    textMain: isDark ? "!text-gray-100" : "!text-[#1e293b]",
+    textMuted: isDark ? "!text-gray-400" : "!text-[#64748b]",
+    btnSecondary: isDark
+      ? "bg-gray-800 text-blue-400 border-gray-700 hover:bg-gray-700"
+      : "bg-white text-[#2563eb] border-blue-100 hover:bg-blue-50",
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Box className="min-h-screen bg-[#f8fafc] p-6">
+      <Box
+        className={`min-h-screen p-6 transition-colors duration-300 ${theme.pageBg}`}
+      >
         <Box className="max-w-3xl mx-auto">
           {/* Header Section */}
           <Box className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
@@ -49,13 +77,13 @@ export default function NotificationsPage() {
               </div>
               <Typography
                 variant="h4"
-                className="font-extrabold text-[#1e293b] tracking-tight"
+                className={`font-extrabold tracking-tight ${theme.textMain}`}
               >
                 Notifications
               </Typography>
               <Typography
                 variant="body2"
-                className="text-[#64748b] mt-1 font-medium"
+                className={`mt-1 font-medium ${theme.textMuted}`}
               >
                 You have{" "}
                 <span className="text-[#2563eb] font-bold">{unreadCount}</span>{" "}
@@ -67,7 +95,7 @@ export default function NotificationsPage() {
               <Button
                 onClick={markAllAsRead}
                 startIcon={<CheckCheck size={18} />}
-                className="bg-white text-[#2563eb] border border-blue-100 hover:bg-blue-50 capitalize font-bold rounded-xl px-4 shadow-sm"
+                className={`capitalize font-bold rounded-xl px-4 shadow-sm transition-all border ${theme.btnSecondary}`}
               >
                 Mark all as read
               </Button>
@@ -89,30 +117,57 @@ export default function NotificationsPage() {
                   <Card
                     className={`rounded-2xl transition-all duration-300 border ${
                       !n.read
-                        ? "bg-[#eff6ff] border-[#3b82f6]/30 shadow-md shadow-blue-50"
-                        : "bg-white border-slate-100"
+                        ? isDark
+                          ? "!bg-blue-900/20 !border-blue-500/30 shadow-lg shadow-blue-900/10"
+                          : "!bg-[#eff6ff] !border-[#3b82f6]/30 shadow-md shadow-blue-50"
+                        : isDark
+                          ? "!bg-gray-800 !border-gray-700"
+                          : "!bg-white !border-slate-100"
                     }`}
                   >
                     <CardContent className="flex justify-between items-start p-5 !pb-5">
                       <Box className="flex gap-4">
-                        {/* Status Indicator Dot */}
                         <div
-                          className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${!n.read ? "bg-[#2563eb] animate-pulse" : "bg-slate-200"}`}
+                          className={`mt-1.5 w-2.5 h-2.5 rounded-full shrink-0 ${
+                            !n.read
+                              ? "bg-blue-500 animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.5)]"
+                              : isDark
+                                ? "bg-gray-600"
+                                : "bg-slate-200"
+                          }`}
                         />
 
                         <Box>
                           <Typography
-                            className={`font-bold tracking-tight text-sm md:text-base ${!n.read ? "text-[#1e293b]" : "text-[#64748b]"}`}
+                            className={`font-bold tracking-tight text-sm md:text-base ${
+                              !n.read
+                                ? isDark
+                                  ? "text-white"
+                                  : "text-[#1e293b]"
+                                : isDark
+                                  ? "text-gray-400"
+                                  : "text-[#64748b]"
+                            }`}
                           >
                             {n.title}
                           </Typography>
                           <Typography
                             variant="body2"
-                            className={`mt-1 leading-relaxed ${!n.read ? "text-slate-700" : "text-slate-500"}`}
+                            className={`mt-1 leading-relaxed ${
+                              !n.read
+                                ? isDark
+                                  ? "text-gray-200"
+                                  : "text-slate-700"
+                                : theme.textMuted
+                            }`}
                           >
                             {n.message}
                           </Typography>
-                          <Typography className="text-[10px] text-slate-400 mt-3 font-bold uppercase tracking-wider">
+                          <Typography
+                            className={`text-[10px] mt-3 font-bold uppercase tracking-wider ${
+                              isDark ? "text-gray-500" : "text-slate-400"
+                            }`}
+                          >
                             {new Date(n.timestamp).toLocaleString([], {
                               month: "short",
                               day: "numeric",
@@ -128,7 +183,11 @@ export default function NotificationsPage() {
                           <IconButton
                             size="small"
                             onClick={() => markAsRead(n.id)}
-                            className="text-[#2563eb] hover:bg-white rounded-lg transition-all"
+                            className={`rounded-lg transition-all ${
+                              isDark
+                                ? "text-blue-400 hover:bg-blue-500/10"
+                                : "text-[#2563eb] hover:bg-blue-50"
+                            }`}
                           >
                             <Check size={18} strokeWidth={3} />
                           </IconButton>
@@ -136,7 +195,11 @@ export default function NotificationsPage() {
                         <IconButton
                           size="small"
                           onClick={() => deleteNotification(n.id)}
-                          className="text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-all"
+                          className={`rounded-lg transition-all ${
+                            isDark
+                              ? "text-gray-500 hover:text-rose-400 hover:bg-rose-500/10"
+                              : "text-slate-300 hover:text-rose-600 hover:bg-rose-50"
+                          }`}
                         >
                           <Trash2 size={18} />
                         </IconButton>
@@ -149,15 +212,20 @@ export default function NotificationsPage() {
 
             {notifications.length === 0 && (
               <Box className="text-center py-20">
-                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Inbox size={32} className="text-slate-300" />
+                <div
+                  className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? "bg-gray-800" : "bg-slate-100"}`}
+                >
+                  <Inbox
+                    size={32}
+                    className={isDark ? "text-gray-600" : "text-slate-300"}
+                  />
                 </div>
-                <Typography className="text-slate-500 font-bold">
+                <Typography className={`font-bold ${theme.textMain}`}>
                   Your inbox is empty
                 </Typography>
                 <Typography
                   variant="caption"
-                  className="text-slate-400 uppercase tracking-widest mt-1"
+                  className={`uppercase tracking-widest mt-1 ${theme.textMuted}`}
                 >
                   Check back later for updates
                 </Typography>

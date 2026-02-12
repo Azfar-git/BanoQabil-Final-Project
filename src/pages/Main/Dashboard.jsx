@@ -26,7 +26,6 @@ import {
   School as SchoolIcon,
   GroupAdd as GroupAddIcon,
 } from "@mui/icons-material";
-
 import { motion } from "framer-motion";
 import { db } from "../../firebase/config";
 import {
@@ -37,26 +36,22 @@ import {
   query,
   orderBy,
   onSnapshot,
-  limit,
 } from "firebase/firestore";
 
-// Components
 import ClassGrid from "../../components/Dashboard/ClassGrid";
 import ClassTable from "../../components/Dashboard/ClassTable";
 import UpcomingAssignments from "../../components/Dashboard/UpcomingAssignments";
-import CalendarWidget from "../../components/Dashboard/CalendarWidget";
-import RecentActivity from "../../components/Dashboard/RecentActivity";
 import StatsCard from "../../components/Dashboard/StatsCard";
-import QuickActions from "../../components/Widgets/QuickActions";
 import ProgressChart from "../../components/Widgets/ProgressChart";
 import { mockAssignments, mockUser } from "../../data/mockData";
+import { useTheme } from "../../context/ThemeContext";
 
 const Dashboard = () => {
+  const { darkMode } = useTheme();
+
   const [viewMode, setViewMode] = useState("grid");
   const [filter, setFilter] = useState("all");
-
   const [classes, setClasses] = useState([]);
-  const [activities, setActivities] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
 
   const [open, setOpen] = useState(false);
@@ -79,13 +74,11 @@ const Dashboard = () => {
       orderBy("createdAt", "desc"),
     );
     const unsubClasses = onSnapshot(qClasses, (snapshot) => {
-      // Inside your useEffect for classes
       const classData = snapshot.docs.map((doc) => {
         const data = doc.data();
         return {
           id: doc.id,
           ...data,
-          // Ensure these names match what the Grid/Table components expect
           name: data.title || "Untitled Class",
           teacher: data.instructorName || "Unknown Instructor",
           code: data.courseCode || "N/A",
@@ -98,23 +91,7 @@ const Dashboard = () => {
       setLoadingClasses(false);
     });
 
-    const qActivity = query(
-      collection(db, "activity"),
-      orderBy("timestamp", "desc"),
-      limit(5),
-    );
-    const unsubActivity = onSnapshot(qActivity, (snapshot) => {
-      const activityData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setActivities(activityData);
-    });
-
-    return () => {
-      unsubClasses();
-      unsubActivity();
-    };
+    return () => unsubClasses();
   }, []);
 
   useEffect(() => {
@@ -155,13 +132,6 @@ const Dashboard = () => {
         status: "active",
       });
 
-      await addDoc(collection(db, "activity"), {
-        type: "class_created",
-        message: `Created new class: ${formData.title}`,
-        timestamp: serverTimestamp(),
-        user: mockUser.name,
-      });
-
       setOpen(false);
       setFormData({
         title: "",
@@ -186,10 +156,8 @@ const Dashboard = () => {
     }, 800);
   };
 
-  // FIXED FILTER LOGIC
   const filteredClasses = classes.filter((c) => {
     if (filter === "all") return true;
-    // Ensuring case-insensitive comparison
     return c.status?.toLowerCase() === filter.toLowerCase();
   });
 
@@ -225,7 +193,15 @@ const Dashboard = () => {
   ];
 
   return (
-    <Box sx={{ p: { xs: 2, md: 4 }, minHeight: "100vh", bgcolor: "#f8fafc" }}>
+    <Box
+      sx={{
+        p: { xs: 2, md: 4 },
+        minHeight: "100vh",
+        bgcolor: darkMode ? "gray.900" : "#f8fafc",
+        color: darkMode ? "gray.100" : "gray.900",
+        transition: "background 0.3s, color 0.3s",
+      }}
+    >
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -236,7 +212,7 @@ const Dashboard = () => {
               variant="h3"
               sx={{
                 fontWeight: 800,
-                color: "#1e293b",
+                color: darkMode ? "gray.100" : "#1e293b",
                 letterSpacing: -1,
                 mb: 1,
                 fontFamily: "Montserrat",
@@ -244,7 +220,10 @@ const Dashboard = () => {
             >
               Hello, {mockUser.name.split(" ")[0]} 👋
             </Typography>
-            <Typography variant="body1" sx={{ color: "#64748b" }}>
+            <Typography
+              variant="body1"
+              sx={{ color: darkMode ? "gray.400" : "#64748b" }}
+            >
               Master your schedule and lead your students to success.
             </Typography>
           </Box>
@@ -260,6 +239,8 @@ const Dashboard = () => {
                   py: 1.2,
                   textTransform: "none",
                   bgcolor: "#2563eb",
+                  color: "#fff",
+                  "&:hover": { bgcolor: "#1d4ed8" },
                 }}
               >
                 Create Class
@@ -274,7 +255,12 @@ const Dashboard = () => {
                 px: 3,
                 py: 1.2,
                 textTransform: "none",
-                color: "#64748b",
+                color: darkMode ? "gray.200" : "#64748b",
+                borderColor: darkMode ? "gray.700" : "#d1d5db",
+                "&:hover": {
+                  borderColor: darkMode ? "gray.500" : "#9ca3af",
+                  backgroundColor: darkMode ? "gray.800" : "#f3f4f6",
+                },
               }}
             >
               Join Class
@@ -283,48 +269,83 @@ const Dashboard = () => {
         </Box>
       </motion.div>
 
+      {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 6 }}>
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} lg={3} key={index}>
-            <StatsCard {...stat} />
+            <StatsCard {...stat} darkMode={darkMode} />
           </Grid>
         ))}
       </Grid>
 
+      {/* Classes Grid / Table */}
       <Grid container spacing={4}>
-        <Grid item xs={12} lg={8}>
+        <Grid item xs={12} lg={8.5}>
           <Paper
             elevation={0}
-            sx={{ p: 0, borderRadius: "24px", bgcolor: "transparent" }}
+            sx={{
+              p: 0,
+              borderRadius: "24px",
+              bgcolor: "transparent",
+            }}
           >
-            <Box className="bg-white p-6 rounded-[24px] border border-slate-200 shadow-sm mb-6">
+            <Box
+              className={`p-6 rounded-[24px] border mb-6 shadow-sm ${
+                darkMode
+                  ? "bg-gray-800 border-gray-700"
+                  : "bg-white border-slate-200"
+              }`}
+            >
               <Box className="flex flex-col md:flex-row justify-between items-center mb-6">
                 <Box className="flex items-center gap-3">
-                  <Box className="p-2 bg-blue-50 text-blue-600 rounded-xl">
+                  <Box
+                    className={`p-2 rounded-xl ${
+                      darkMode
+                        ? "bg-gray-700 text-blue-400"
+                        : "bg-blue-50 text-blue-600"
+                    }`}
+                  >
                     <SchoolIcon />
                   </Box>
                   <Box>
                     <Typography
                       variant="h6"
-                      sx={{ fontWeight: 800, fontFamily: "Montserrat" }}
+                      sx={{
+                        fontWeight: 800,
+                        fontFamily: "Montserrat",
+                        color: darkMode ? "gray.100" : "gray.900",
+                      }}
                     >
                       Academic Overview
                     </Typography>
                     <Typography
                       variant="caption"
-                      sx={{ color: "#94a3b8", fontWeight: 600 }}
+                      sx={{
+                        color: darkMode ? "gray.400" : "#94a3b8",
+                        fontWeight: 600,
+                      }}
                     >
                       {filteredClasses.length} Courses Displayed
                     </Typography>
                   </Box>
                 </Box>
                 <Box className="flex items-center gap-4 mt-4 md:mt-0">
-                  <Box className="flex bg-slate-100 p-1 rounded-lg">
+                  <Box
+                    className={`flex p-1 rounded-lg ${
+                      darkMode ? "bg-gray-700" : "bg-slate-100"
+                    }`}
+                  >
                     {["all", "active"].map((f) => (
                       <Box
                         key={f}
                         onClick={() => setFilter(f)}
-                        className={`px-4 py-1.5 rounded-md text-xs font-bold uppercase cursor-pointer transition-all ${filter === f ? "bg-white text-blue-600 shadow-sm" : "text-slate-400 hover:text-slate-600"}`}
+                        className={`px-4 py-1.5 rounded-md text-xs font-bold uppercase cursor-pointer transition-all ${
+                          filter === f
+                            ? "bg-white text-blue-600 shadow-sm"
+                            : darkMode
+                              ? "text-gray-400 hover:text-gray-200"
+                              : "text-slate-400 hover:text-slate-600"
+                        }`}
                       >
                         {f}
                       </Box>
@@ -348,40 +369,42 @@ const Dashboard = () => {
 
               {loadingClasses ? (
                 <Box className="flex justify-center p-10">
-                  <CircularProgress />
+                  <CircularProgress color={darkMode ? "inherit" : "primary"} />
                 </Box>
               ) : viewMode === "grid" ? (
-                <ClassGrid classes={filteredClasses} />
+                <ClassGrid classes={filteredClasses} darkMode={darkMode} />
               ) : (
-                <ClassTable classes={filteredClasses} />
+                <ClassTable classes={filteredClasses} darkMode={darkMode} />
               )}
             </Box>
           </Paper>
         </Grid>
 
-        <Grid item xs={12} lg={4}>
-          <Box className="space-y-6">
-            <UpcomingAssignments />
-            <CalendarWidget />
-            <QuickActions />
+        <Grid item xs={12} lg={3.5}>
+          <Box className="space-y-6 sticky top-6">
+            <UpcomingAssignments darkMode={darkMode} />
             <ProgressChart
               data={classes.map((c) => ({ name: c.name, value: c.students }))}
+              darkMode={darkMode}
             />
           </Box>
         </Grid>
       </Grid>
 
-      <Box sx={{ mt: 6 }}>
-        <RecentActivity activities={activities} />
-      </Box>
-
-      {/* MODALS RENDERED HERE (Omitted for brevity but identical to previous correct version) */}
+      {/* Modals remain same */}
       <Dialog
         open={open}
         onClose={() => !loading && setOpen(false)}
         fullWidth
         maxWidth="sm"
-        PaperProps={{ sx: { borderRadius: "24px", p: 2 } }}
+        PaperProps={{
+          sx: {
+            borderRadius: "24px",
+            p: 2,
+            bgcolor: darkMode ? "gray.800" : "white",
+            color: darkMode ? "gray.100" : "gray.900",
+          },
+        }}
       >
         <DialogTitle sx={{ fontWeight: 800 }}>🚀 Launch New Class</DialogTitle>
         <DialogContent>
@@ -393,6 +416,12 @@ const Dashboard = () => {
             onChange={(e) =>
               setFormData({ ...formData, title: e.target.value })
             }
+            InputProps={{
+              sx: {
+                bgcolor: darkMode ? "gray.700" : "white",
+                color: darkMode ? "gray.100" : "gray.900",
+              },
+            }}
           />
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={6}>
@@ -404,6 +433,12 @@ const Dashboard = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, campus: e.target.value })
                 }
+                InputProps={{
+                  sx: {
+                    bgcolor: darkMode ? "gray.700" : "white",
+                    color: darkMode ? "gray.100" : "gray.900",
+                  },
+                }}
               >
                 {campuses.map((c) => (
                   <MenuItem key={c.id} value={c.name}>
@@ -421,6 +456,12 @@ const Dashboard = () => {
                 onChange={(e) =>
                   setFormData({ ...formData, course: e.target.value })
                 }
+                InputProps={{
+                  sx: {
+                    bgcolor: darkMode ? "gray.700" : "white",
+                    color: darkMode ? "gray.100" : "gray.900",
+                  },
+                }}
               >
                 {courses.map((c) => (
                   <MenuItem key={c.id} value={c.name}>
@@ -448,7 +489,14 @@ const Dashboard = () => {
         onClose={() => !loading && setOpenJoin(false)}
         fullWidth
         maxWidth="xs"
-        PaperProps={{ sx: { borderRadius: "24px", p: 2 } }}
+        PaperProps={{
+          sx: {
+            borderRadius: "24px",
+            p: 2,
+            bgcolor: darkMode ? "gray.800" : "white",
+            color: darkMode ? "gray.100" : "gray.900",
+          },
+        }}
       >
         <DialogTitle sx={{ fontWeight: 800 }}>🔑 Join Environment</DialogTitle>
         <DialogContent>
@@ -458,6 +506,12 @@ const Dashboard = () => {
             margin="normal"
             value={joinCode}
             onChange={(e) => setJoinCode(e.target.value)}
+            InputProps={{
+              sx: {
+                bgcolor: darkMode ? "gray.700" : "white",
+                color: darkMode ? "gray.100" : "gray.900",
+              },
+            }}
           />
         </DialogContent>
         <DialogActions sx={{ p: 3 }}>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Typography,
@@ -11,24 +11,71 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { motion } from "framer-motion";
+import { User, Camera } from "lucide-react";
 
 export default function ProfileSettings() {
-  const [formData, setFormData] = React.useState({
+  const fileInputRef = useRef(null);
+  const [profileImage, setProfileImage] = useState(null);
+  const [formData, setFormData] = useState({
     name: "Muhammad Ali",
     email: "ali@student.com",
     phone: "+92-300-1234567",
     bio: "Computer Science Student",
   });
 
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+
+  // ✅ GLOBAL DARK MODE WATCHER
+  const [isDark, setIsDark] = useState(
+    document.documentElement.classList.contains("dark"),
+  );
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains("dark"));
+    });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["class"],
+    });
+    return () => observer.disconnect();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // ✅ PHOTO UPLOAD LOGIC
+  const handlePhotoClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSave = () => {
     setLoading(true);
-    setTimeout(() => setLoading(false), 1500); // Functional feedback
+    setTimeout(() => setLoading(false), 1500);
+  };
+
+  // ✅ THEME MAPPING
+  const theme = {
+    pageBg: isDark ? "!bg-gray-900" : "!bg-[#f8fafc]",
+    cardBg: isDark
+      ? "!bg-gray-800 !border-none"
+      : "!bg-white !border-slate-100",
+    textMain: isDark ? "!text-white" : "!text-[#1e293b]",
+    textMuted: isDark ? "!text-gray-400" : "!text-slate-500",
+    inputBg: isDark ? "#111827" : "#f8fafc",
+    inputBorder: isDark ? "#374151" : "#e2e8f0",
   };
 
   return (
@@ -37,103 +84,140 @@ export default function ProfileSettings() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Background matches your dashboard exactly */}
-      <Box className="min-h-screen bg-[#f8fafc] p-6">
+      <Box
+        className={`min-h-screen p-6 transition-colors duration-300 ${theme.pageBg}`}
+      >
         <Box className="max-w-2xl mx-auto">
+          {/* Header Section - Emoji Removed */}
           <Box className="mb-8">
             <Typography
               variant="h4"
-              className="font-black text-[#1e293b]"
-              style={{
-                fontFamily: "Montserrat, sans-serif",
-                letterSpacing: "-0.02em",
-              }}
+              className={`font-black tracking-tight flex items-center gap-3 ${theme.textMain}`}
+              sx={{ fontFamily: "Montserrat, sans-serif" }}
             >
-              👤 Profile Settings
+              <User size={32} className="text-[#2563eb]" /> Profile Settings
             </Typography>
             <Typography
               variant="body2"
-              className="text-slate-500 font-medium mt-1"
+              className={`mt-1 font-medium ${theme.textMuted}`}
             >
               Manage your profile information and account preferences
             </Typography>
           </Box>
 
           <Card
-            className="shadow-xl shadow-slate-200/60 border border-slate-100"
+            className={`shadow-2xl transition-all duration-300 border-none ${theme.cardBg}`}
             sx={{ borderRadius: "24px" }}
           >
             <CardContent className="p-8 space-y-8">
-              {/* Profile Picture - Improved spacing and button size */}
-              <Box className="flex flex-col items-center pb-6 border-b border-slate-100">
-                <Avatar
-                  className="mb-4 shadow-inner"
-                  sx={{
-                    width: 100,
-                    height: 100,
-                    fontSize: "2.5rem",
-                    bgcolor: "#2563eb",
-                    fontWeight: "bold",
-                    border: "4px solid white",
-                    boxShadow: "0 4px 14px 0 rgba(0,0,0,0.1)",
-                  }}
-                >
-                  {formData.name.charAt(0)}
-                </Avatar>
+              {/* Profile Picture Section */}
+              <Box
+                className={`flex flex-col items-center pb-6 border-b ${isDark ? "border-gray-700" : "border-slate-50"}`}
+              >
+                <div className="relative group">
+                  <Avatar
+                    src={profileImage}
+                    className="mb-4 shadow-xl transition-transform group-hover:scale-105"
+                    sx={{
+                      width: 110,
+                      height: 110,
+                      fontSize: "2.5rem",
+                      bgcolor: "#2563eb",
+                      fontWeight: "bold",
+                      border: isDark ? "4px solid #1f2937" : "4px solid white",
+                      boxShadow: "0 10px 25px -5px rgba(37, 99, 235, 0.4)",
+                    }}
+                  >
+                    {!profileImage && formData.name.charAt(0)}
+                  </Avatar>
+                  <button
+                    onClick={handlePhotoClick}
+                    className="absolute bottom-4 right-0 p-2 bg-[#2563eb] text-white rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+                  >
+                    <Camera size={16} />
+                  </button>
+                </div>
+
+                {/* Hidden File Input */}
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  accept="image/*"
+                  className="hidden"
+                />
+
                 <Button
                   variant="outlined"
                   size="small"
-                  className="rounded-full capitalize font-bold border-slate-200 text-slate-600 hover:bg-slate-50"
+                  onClick={handlePhotoClick}
+                  className={`rounded-full capitalize font-bold px-6 mt-2 ${
+                    isDark
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
                 >
                   Change Photo
                 </Button>
               </Box>
 
-              {/* Personal Information - Cleaned up TextFields for 100% Zoom */}
-              <Box>
+              {/* Input Fields Section */}
+              <Box className="space-y-6">
                 <Typography
                   variant="subtitle1"
-                  className="font-bold text-[#1e293b] mb-4"
+                  className={`font-bold ${theme.textMain}`}
                 >
                   Personal Information
                 </Typography>
-                <Box className="space-y-4">
-                  <TextField
-                    fullWidth
-                    label="Full Name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    variant="outlined"
-                    sx={{
-                      "& .MuiOutlinedInput-root": { borderRadius: "12px" },
-                    }}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Email Address"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    disabled
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        borderRadius: "12px",
-                        bgcolor: "#f1f5f9",
-                      },
-                      "& .Mui-disabled": { WebkitTextFillColor: "#64748b" },
-                    }}
-                  />
-                  <TextField
-                    fullWidth
-                    label="Phone Number"
-                    name="phone"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    sx={{
-                      "& .MuiOutlinedInput-root": { borderRadius: "12px" },
-                    }}
-                  />
+
+                <Box className="grid grid-cols-1 gap-5">
+                  {[
+                    { label: "Full Name", name: "name", value: formData.name },
+                    {
+                      label: "Email Address",
+                      name: "email",
+                      value: formData.email,
+                      disabled: true,
+                    },
+                    {
+                      label: "Phone Number",
+                      name: "phone",
+                      value: formData.phone,
+                    },
+                  ].map((field) => (
+                    <TextField
+                      key={field.name}
+                      fullWidth
+                      label={field.label}
+                      name={field.name}
+                      value={field.value}
+                      disabled={field.disabled}
+                      onChange={handleChange}
+                      variant="outlined"
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          borderRadius: "16px",
+                          backgroundColor: field.disabled
+                            ? isDark
+                              ? "#1f2937"
+                              : "#f1f5f9"
+                            : theme.inputBg,
+                          color: isDark ? "white" : "inherit",
+                          "& fieldset": { borderColor: theme.inputBorder },
+                          "&.Mui-focused fieldset": {
+                            borderColor: "#2563eb !important",
+                          },
+                        },
+                        "& .MuiInputLabel-root": {
+                          color: isDark ? "#9ca3af" : "#64748b",
+                        },
+                        "& .Mui-disabled": {
+                          WebkitTextFillColor: isDark ? "#6b7280" : "#94a3b8",
+                        },
+                      }}
+                    />
+                  ))}
+
                   <TextField
                     fullWidth
                     label="Bio"
@@ -143,44 +227,53 @@ export default function ProfileSettings() {
                     multiline
                     rows={3}
                     sx={{
-                      "& .MuiOutlinedInput-root": { borderRadius: "12px" },
+                      "& .MuiOutlinedInput-root": {
+                        borderRadius: "16px",
+                        backgroundColor: theme.inputBg,
+                        color: isDark ? "white" : "inherit",
+                        "& fieldset": { borderColor: theme.inputBorder },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: isDark ? "#9ca3af" : "#64748b",
+                      },
                     }}
                   />
                 </Box>
               </Box>
 
-              <Divider className="border-slate-100" />
+              <Divider
+                className={isDark ? "border-gray-700" : "border-slate-50"}
+              />
 
-              {/* Privacy Settings */}
+              {/* Privacy Footer */}
               <Box>
                 <Typography
-                  variant="subtitle1"
-                  className="font-bold text-[#1e293b] mb-2"
+                  variant="subtitle2"
+                  className={`font-bold mb-1 ${theme.textMain}`}
                 >
                   Privacy
                 </Typography>
-                <Typography
-                  variant="body2"
-                  className="text-slate-500 mb-4 font-medium"
+                <Box
+                  className={`p-4 rounded-2xl flex items-center gap-3 ${isDark ? "bg-gray-900/50" : "bg-slate-50"}`}
                 >
-                  Control who can see your activity and profile details.
-                </Typography>
-                <Box className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <Typography className="text-slate-700 text-sm font-bold flex items-center gap-2">
-                    <span className="w-2 h-2 bg-blue-600 rounded-full"></span>
-                    Teachers and classmates only
+                  <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                  <Typography
+                    variant="body2"
+                    className={`font-medium ${theme.textMuted}`}
+                  >
+                    Profile visible to teachers and classmates only
                   </Typography>
                 </Box>
               </Box>
 
-              {/* Action Buttons - Solid colors for better visibility */}
+              {/* Action Buttons */}
               <Box className="pt-4 flex gap-4">
                 <Button
                   variant="contained"
                   onClick={handleSave}
                   disabled={loading}
-                  className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold py-3 px-8 shadow-lg shadow-blue-200"
-                  sx={{ borderRadius: "14px", textTransform: "none", flex: 1 }}
+                  className="bg-[#2563eb] hover:bg-[#1d4ed8] text-white font-bold py-3 shadow-lg shadow-blue-500/30"
+                  sx={{ borderRadius: "16px", textTransform: "none", flex: 2 }}
                 >
                   {loading ? (
                     <CircularProgress size={24} color="inherit" />
@@ -190,8 +283,12 @@ export default function ProfileSettings() {
                 </Button>
                 <Button
                   variant="outlined"
-                  className="border-slate-200 text-slate-600 hover:bg-slate-50 font-bold px-8"
-                  sx={{ borderRadius: "14px", textTransform: "none" }}
+                  className={`font-bold px-8 ${
+                    isDark
+                      ? "border-gray-600 text-gray-300 hover:bg-gray-700"
+                      : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                  }`}
+                  sx={{ borderRadius: "16px", textTransform: "none", flex: 1 }}
                 >
                   Cancel
                 </Button>
