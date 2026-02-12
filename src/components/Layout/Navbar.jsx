@@ -1,194 +1,229 @@
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Bell, User, LogOut, Settings, Search } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
-import { DUMMY_NOTIFICATIONS } from '../../data/dummyData';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import {
+  Bell,
+  LogOut,
+  Settings,
+  Search,
+  Calendar,
+  CheckSquare,
+  LayoutDashboard,
+} from "lucide-react";
+import { useAuth } from "../../context/AuthContext";
+import { DUMMY_NOTIFICATIONS } from "../../data/dummyData";
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const unreadCount = DUMMY_NOTIFICATIONS.filter(n => !n.read).length;
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const unreadCount = DUMMY_NOTIFICATIONS.filter((n) => !n.read).length;
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate("/login");
   };
 
-  if (location.pathname.includes('/login') || location.pathname.includes('/register')) {
+  if (
+    location.pathname.includes("/login") ||
+    location.pathname.includes("/register")
+  ) {
     return null;
   }
 
+  const navLinks = [
+    {
+      name: "Dashboard",
+      path: "/dashboard",
+      icon: <LayoutDashboard size={18} />,
+    },
+    { name: "Calendar", path: "/calendar", icon: <Calendar size={18} /> },
+    { name: "To-Do", path: "/todo", icon: <CheckSquare size={18} /> },
+  ];
+
   return (
-    <nav className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav
+      className={`sticky top-0 z-50 transition-all duration-300 ${
+        scrolled
+          ? "bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200"
+          : "bg-white border-b border-slate-100"
+      }`}
+    >
+      <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <Link to="/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-700 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold">GC</span>
+          {/* Logo Section */}
+          <Link to="/dashboard" className="flex items-center gap-3 group">
+            <div className="w-9 h-9 bg-[#3b52f6] rounded-lg flex items-center justify-center shadow-md shadow-blue-100 group-hover:bg-[#2563eb] transition-colors">
+              <span className="text-white font-bold text-sm">BQ</span>
             </div>
-            <span className="font-bold text-gray-900 hidden sm:inline">Google Classroom</span>
+            <div className="flex flex-col">
+              <span className="font-bold text-[#1e293b] text-lg leading-tight tracking-tight">
+                Classroom
+              </span>
+              <span className="text-[10px] text-[#3b52f6] font-bold uppercase tracking-wider leading-none">
+                Education
+              </span>
+            </div>
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden md:flex items-center gap-2">
-            <Link
-              to="/dashboard"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/calendar"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
-            >
-              Calendar
-            </Link>
-            <Link
-              to="/todo"
-              className="px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition"
-            >
-              To-Do
-            </Link>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center bg-[#f8fafc] p-1 rounded-xl border border-slate-200/60">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                to={link.path}
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  location.pathname === link.path
+                    ? "bg-[#2563eb] text-white shadow-md shadow-blue-200"
+                    : "text-[#64748b] hover:text-[#1e293b] hover:bg-white"
+                }`}
+              >
+                {link.icon}
+                {link.name}
+              </Link>
+            ))}
           </div>
 
-          {/* Right Side */}
+          {/* Right Side Actions */}
           <div className="flex items-center gap-4">
             {/* Search */}
-            <div className="hidden lg:flex bg-gray-100 rounded-full px-4 py-2 items-center gap-2">
-              <Search size={16} className="text-gray-400" />
+            <div className="hidden lg:flex items-center relative group">
+              <Search
+                size={18}
+                className="absolute left-3 text-slate-400 group-focus-within:text-[#2563eb] transition-colors"
+              />
               <input
                 type="text"
-                placeholder="Search"
-                className="bg-transparent outline-none text-sm w-40"
+                placeholder="Search resources..."
+                className="pl-10 pr-4 py-2 bg-[#f1f5f9] border-none rounded-xl text-sm w-48 focus:w-64 focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all outline-none text-slate-700"
               />
             </div>
 
-            {/* Notifications */}
+            {/* Notifications Dropdown */}
             <div className="relative">
               <button
-                onClick={() => setShowNotifications(!showNotifications)}
-                className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition"
+                onClick={() => {
+                  setShowNotifications(!showNotifications);
+                  setShowUserMenu(false);
+                }}
+                className={`p-2.5 rounded-xl transition-all relative ${
+                  showNotifications
+                    ? "bg-blue-50 text-[#2563eb]"
+                    : "text-slate-500 hover:bg-slate-100"
+                }`}
               >
-                <Bell size={20} />
+                <Bell size={22} />
                 {unreadCount > 0 && (
-                  <span className="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-                    {unreadCount}
-                  </span>
+                  <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-[#ef4444] rounded-full border-2 border-white"></span>
                 )}
               </button>
 
-              {/* Notification Dropdown */}
-              {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 max-h-96 overflow-y-auto">
-                  <div className="p-4 border-b border-gray-200">
-                    <h3 className="font-semibold text-gray-900">Notifications</h3>
-                  </div>
-                  {DUMMY_NOTIFICATIONS.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500">No notifications</div>
-                  ) : (
-                    <div>
-                      {DUMMY_NOTIFICATIONS.map(notification => (
-                        <div
-                          key={notification.id}
-                          className={`px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition ${
-                            !notification.read ? 'bg-blue-50' : ''
-                          }`}
-                        >
-                          <p className="font-medium text-sm text-gray-900">{notification.title}</p>
-                          <p className="text-xs text-gray-600 mt-1">{notification.message}</p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {new Date(notification.timestamp).toLocaleTimeString()}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+              {/* Notification Dropdown with Animation */}
+              <div
+                className={`absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transition-all duration-200 origin-top-right ${
+                  showNotifications
+                    ? "opacity-100 scale-100 translate-y-0 visible"
+                    : "opacity-0 scale-95 -translate-y-2 invisible"
+                }`}
+              >
+                <div className="px-4 py-4 border-b border-slate-50 flex justify-between items-center">
+                  <h3 className="font-bold text-[#1e293b]">Notifications</h3>
+                  <button className="text-[11px] font-bold text-[#2563eb] hover:underline">
+                    Mark all as read
+                  </button>
                 </div>
-              )}
+                <div className="max-h-[400px] overflow-y-auto">
+                  {DUMMY_NOTIFICATIONS.map((notification) => (
+                    <div
+                      key={notification.id}
+                      className={`p-4 border-b border-slate-50 transition-colors ${
+                        !notification.read
+                          ? "bg-[#eff6ff] border-l-4 border-l-[#3b82f6]"
+                          : "hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex justify-between items-start">
+                        <p
+                          className={`text-sm ${!notification.read ? "font-bold text-[#1e293b]" : "text-slate-600"}`}
+                        >
+                          {notification.title}
+                        </p>
+                        {!notification.read && (
+                          <div className="w-2 h-2 bg-[#3b82f6] rounded-full"></div>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                        {notification.message}
+                      </p>
+                      <p className="text-[10px] text-slate-400 mt-2 font-semibold uppercase tracking-tight">
+                        {new Date(notification.timestamp).toLocaleTimeString(
+                          [],
+                          { hour: "2-digit", minute: "2-digit" },
+                        )}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            {/* User Menu */}
+            {/* User Profile Dropdown with Animation */}
             <div className="relative">
               <button
-                onClick={() => setShowUserMenu(!showUserMenu)}
-                className="flex items-center gap-2 p-2 text-gray-700 hover:bg-gray-100 rounded-full transition"
+                onClick={() => {
+                  setShowUserMenu(!showUserMenu);
+                  setShowNotifications(false);
+                }}
+                className="flex items-center gap-2 p-0.5 rounded-xl hover:bg-slate-100 transition-colors"
               >
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                  {user?.name?.charAt(0) || 'U'}
+                <div className="w-9 h-9 rounded-lg bg-[#dbeafe] flex items-center justify-center text-[#2563eb] font-bold shadow-sm border border-blue-100">
+                  {user?.name?.charAt(0) || "A"}
                 </div>
               </button>
 
-              {/* User Dropdown */}
-              {showUserMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200">
-                  <div className="p-4 border-b border-gray-200">
-                    <p className="font-semibold text-gray-900">{user?.name}</p>
-                    <p className="text-xs text-gray-600">{user?.email}</p>
-                  </div>
+              <div
+                className={`absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden transition-all duration-200 origin-top-right ${
+                  showUserMenu
+                    ? "opacity-100 scale-100 translate-y-0 visible"
+                    : "opacity-0 scale-95 -translate-y-2 invisible"
+                }`}
+              >
+                <div className="p-4 bg-[#f8fafc] border-b border-slate-100">
+                  <p className="font-bold text-[#1e293b] text-sm">
+                    {user?.name || "Alex"}
+                  </p>
+                  <p className="text-xs text-slate-500 truncate">
+                    alex.student@bq.edu
+                  </p>
+                </div>
+                <div className="p-2">
                   <Link
-                    to="/settings/profile"
-                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition"
+                    to="/settings"
+                    className="flex items-center gap-3 px-3 py-2 text-slate-600 hover:bg-blue-50 hover:text-[#2563eb] rounded-lg transition text-sm font-medium"
                   >
-                    <User size={16} />
-                    <span className="text-sm">Profile Settings</span>
-                  </Link>
-                  <Link
-                    to="/settings/account"
-                    className="flex items-center gap-2 px-4 py-2 text-gray-700 hover:bg-gray-50 transition"
-                  >
-                    <Settings size={16} />
-                    <span className="text-sm">Account Settings</span>
+                    <Settings size={16} /> Settings
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 transition border-t border-gray-200"
+                    className="w-full flex items-center gap-3 px-3 py-2 text-rose-600 hover:bg-rose-50 rounded-lg transition text-sm font-medium mt-1"
                   >
-                    <LogOut size={16} />
-                    <span className="text-sm">Logout</span>
+                    <LogOut size={16} /> Logout
                   </button>
                 </div>
-              )}
+              </div>
             </div>
-
-            {/* Mobile menu button */}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
-            >
-              {isOpen ? <X size={20} /> : <Menu size={20} />}
-            </button>
           </div>
         </div>
-
-        {/* Mobile Menu */}
-        {isOpen && (
-          <div className="md:hidden pb-4">
-            <Link
-              to="/dashboard"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              Dashboard
-            </Link>
-            <Link
-              to="/calendar"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              Calendar
-            </Link>
-            <Link
-              to="/todo"
-              className="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg"
-            >
-              To-Do
-            </Link>
-          </div>
-        )}
       </div>
     </nav>
   );
