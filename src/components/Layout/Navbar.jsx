@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   Bell,
@@ -8,15 +8,30 @@ import {
   Calendar,
   CheckSquare,
   LayoutDashboard,
+  RefreshCw,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import { DUMMY_NOTIFICATIONS } from "../../data/dummyData";
+import { db } from "../../firebase/config";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  updateDoc,
+  doc,
+  writeBatch,
+  getDocs,
+} from "firebase/firestore";
 
 export default function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [loadingNotifs, setLoadingNotifs] = useState(true);
+  const [notifError, setNotifError] = useState(null);
 
   const { user, logout } = useAuth();
   const { darkMode } = useTheme();
@@ -29,7 +44,110 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const unreadCount = DUMMY_NOTIFICATIONS.filter((n) => !n.read).length;
+  // Subscribe to user's notifications
+  useEffect(() => {
+    if (!user?.id) {
+      setLoadingNotifs(false);
+      return;
+    }
+
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", user.id),
+      orderBy("createdAt", "desc")
+    );
+
+    const unsub = onSnapshot(
+      q,
+      (snapshot) => {
+        const notifs = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setNotifications(notifs);
+        setLoadingNotifs(false);
+        setNotifError(null);
+      },
+      (error) => {
+        console.error("Notifications error:", error);
+        // Check if it's an index error
+        if (error.code === "failed-precondition" || error.message.includes("index")) {
+          setNotifError(
+            <div>
+              <p className="text-sm">Need to create a Firestore index.</p>
+              <a
+                href={`https://console.firebase.google.com/v1/r/project/${db.app.options.projectId}/firestore/indexes`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 underline text-xs"
+              >
+                Click here to create the required index
+              </a>
+            </div>
+          );
+        } else {
+          setNotifError("Failed to load notifications. Check console.");
+        }
+        setLoadingNotifs(false);
+      }
+    );
+
+    return () => unsub();
+  }, [user?.id]);
+
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const handleMarkAllRead = async () => {
+    if (unreadCount === 0) return;
+    try {
+      const batch = writeBatch(db);
+      notifications.forEach((notif) => {
+        if (!notif.read) {
+          const notifRef = doc(db, "notifications", notif.id);
+          batch.update(notifRef, { read: true });
+        }
+      });
+      await batch.commit();
+    } catch (error) {
+      console.error("Error marking all as read:", error);
+    }
+  };
+
+  const handleNotificationClick = async (notif) => {
+    try {
+      if (!notif.read) {
+        await updateDoc(doc(db, "notifications", notif.id), { read: true });
+      }
+      if (notif.link) {
+        navigate(notif.link);
+      }
+      setShowNotifications(false);
+    } catch (error) {
+      console.error("Error handling notification click:", error);
+    }
+  };
+
+  // Manual refresh function (fallback if onSnapshot fails)
+  const refreshNotifications = useCallback(async () => {
+    if (!user?.id) return;
+    setLoadingNotifs(true);
+    try {
+      const q = query(
+        collection(db, "notifications"),
+        where("userId", "==", user.id),
+        orderBy("createdAt", "desc")
+      );
+      const snapshot = await getDocs(q);
+      const notifs = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setNotifications(notifs);
+      setNotifError(null);
+    } catch (error) {
+      console.error("Manual refresh error:", error);
+      setNotifError("Manual refresh failed.");
+    } finally {
+      setLoadingNotifs(false);
+    }
+  }, [user?.id]);
 
   const handleLogout = () => {
     logout();
@@ -67,7 +185,7 @@ export default function Navbar() {
     >
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo Section - Removed border-b logic */}
+          {/* Logo */}
           <Link to="/dashboard" className="flex items-center gap-3 group">
             <div className="w-9 h-9 bg-[#3b52f6] rounded-lg flex items-center justify-center shadow-md group-hover:bg-[#2563eb] transition-colors">
               <span className="text-white font-bold text-sm">BQ</span>
@@ -86,7 +204,7 @@ export default function Navbar() {
             </div>
           </Link>
 
-          {/* Desktop Navigation - Simplified Container */}
+          {/* Desktop Navigation */}
           <div
             className={`hidden md:flex items-center p-1 rounded-xl transition-all ${
               darkMode ? "bg-gray-800 shadow-inner" : "bg-slate-100/80"
@@ -166,40 +284,74 @@ export default function Navbar() {
               >
                 <div
                   className={`px-4 py-4 border-b flex justify-between items-center ${
-                    darkMode ? "border-gray-700" : "border-slate-50"
+                    darkMode ? "border-gray-700" : "border-slate-100"
                   }`}
                 >
                   <h3 className="font-bold">Notifications</h3>
-                  <button className="text-[11px] font-bold text-[#2563eb]">
-                    Mark all as read
-                  </button>
+                  <div className="flex gap-2">
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={handleMarkAllRead}
+                        className="text-[11px] font-bold text-[#2563eb]"
+                      >
+                        Mark all as read
+                      </button>
+                    )}
+                    <button
+                      onClick={refreshNotifications}
+                      className="p-1 rounded-full hover:bg-gray-500/20 transition"
+                      title="Refresh"
+                    >
+                      <RefreshCw size={14} />
+                    </button>
+                  </div>
                 </div>
                 <div className="max-h-[300px] overflow-y-auto">
-                  {DUMMY_NOTIFICATIONS.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-4 transition-colors ${
-                        !notification.read
-                          ? darkMode
-                            ? "bg-gray-700/30"
-                            : "bg-blue-50/50"
-                          : darkMode
-                            ? "hover:bg-gray-700/50"
-                            : "hover:bg-slate-50"
-                      }`}
-                    >
-                      <p
-                        className={`text-sm ${!notification.read ? "font-bold" : "font-medium"}`}
-                      >
-                        {notification.title}
-                      </p>
-                      <p
-                        className={`text-xs mt-1 ${darkMode ? "text-gray-400" : "text-slate-500"}`}
-                      >
-                        {notification.message}
-                      </p>
+                  {loadingNotifs ? (
+                    <div className="p-4 text-center text-sm opacity-70">Loading...</div>
+                  ) : notifError ? (
+                    <div className="p-4 text-center text-sm text-red-500">
+                      {typeof notifError === "string" ? notifError : notifError}
                     </div>
-                  ))}
+                  ) : notifications.length === 0 ? (
+                    <div className="p-4 text-center text-sm opacity-70">No notifications</div>
+                  ) : (
+                    notifications.map((notification) => (
+                      <div
+                        key={notification.id}
+                        onClick={() => handleNotificationClick(notification)}
+                        className={`p-4 transition-colors cursor-pointer ${
+                          !notification.read
+                            ? darkMode
+                              ? "bg-gray-700/30"
+                              : "bg-blue-50/50"
+                            : darkMode
+                              ? "hover:bg-gray-700/50"
+                              : "hover:bg-slate-50"
+                        }`}
+                      >
+                        <p
+                          className={`text-sm ${
+                            !notification.read ? "font-bold" : "font-medium"
+                          }`}
+                        >
+                          {notification.title}
+                        </p>
+                        <p
+                          className={`text-xs mt-1 ${
+                            darkMode ? "text-gray-400" : "text-slate-500"
+                          }`}
+                        >
+                          {notification.message}
+                        </p>
+                        <p className="text-[10px] mt-1 opacity-50">
+                          {notification.createdAt?.toDate
+                            ? notification.createdAt.toDate().toLocaleString()
+                            : "Just now"}
+                        </p>
+                      </div>
+                    ))
+                  )}
                 </div>
               </div>
             </div>
@@ -229,12 +381,14 @@ export default function Navbar() {
                   className={`p-4 ${darkMode ? "bg-gray-700/50" : "bg-slate-50"}`}
                 >
                   <p
-                    className={`font-bold text-sm ${darkMode ? "text-white" : "text-slate-900"}`}
+                    className={`font-bold text-sm ${
+                      darkMode ? "text-white" : "text-slate-900"
+                    }`}
                   >
                     {user?.name || "Alex"}
                   </p>
                   <p className="text-xs text-slate-500 truncate">
-                    alex.student@bq.edu
+                    {user?.email || "alex.student@bq.edu"}
                   </p>
                 </div>
                 <div className="p-2">

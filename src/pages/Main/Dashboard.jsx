@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Grid,
   Box,
@@ -15,10 +15,8 @@ import {
   CircularProgress,
   Paper,
   Chip,
-  OutlinedInput,
-  Select,
-  FormControl,
-  InputLabel,
+  Autocomplete,
+  useMediaQuery,
 } from "@mui/material";
 import {
   Add as AddIcon,
@@ -30,53 +28,43 @@ import {
   NotificationsActive as NotificationsIcon,
   School as SchoolIcon,
   GroupAdd as GroupAddIcon,
+  FilterList as FilterListIcon,
 } from "@mui/icons-material";
 import { motion } from "framer-motion";
 import { db } from "../../firebase/config";
 import {
   collection,
-  addDoc,
   getDocs,
   serverTimestamp,
   query,
   orderBy,
   onSnapshot,
   where,
-  updateDoc,
   doc,
+  writeBatch,
   arrayUnion,
-  increment,
+  getDoc,
 } from "firebase/firestore";
-
 import ClassGrid from "../../components/Dashboard/ClassGrid";
 import ClassTable from "../../components/Dashboard/ClassTable";
 import UpcomingAssignments from "../../components/Dashboard/UpcomingAssignments";
 import StatsCard from "../../components/Dashboard/StatsCard";
 import ProgressChart from "../../components/Widgets/ProgressChart";
+import { mockAssignments, mockUser } from "../../data/mockData";
 import { useTheme } from "../../context/ThemeContext";
-
-// NOTE: Assuming you have an AuthContext to get the current logged-in user.
-// Replace this import path with your actual AuthContext path.
-import { useAuth } from "../../context/AuthContext";
 
 const Dashboard = () => {
   const { darkMode } = useTheme();
-
-  // Fetch real user data instead of mockUser
-  const { user } = useAuth();
+  const isMobile = useMediaQuery("(max-width:600px)");
 
   const [viewMode, setViewMode] = useState("grid");
   const [filter, setFilter] = useState("all");
   const [classes, setClasses] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
-
-  // State for real assignments
-  const [assignments, setAssignments] = useState([]);
-
   const [open, setOpen] = useState(false);
   const [openJoin, setOpenJoin] = useState(false);
   const [loading, setLoading] = useState(false);
-
+  const [joinError, setJoinError] = useState("");
   const [campuses, setCampuses] = useState([]);
   const [courses, setCourses] = useState([]);
   const [studentsList, setStudentsList] = useState([]);
@@ -95,80 +83,66 @@ const Dashboard = () => {
     campus: "",
     course: "",
     timing: "",
-    selectedStudents: [],
-    instructorName: user?.name || user?.displayName || "Unknown Instructor",
+    selectedStudents: [], // stores full student objects
   });
 
-  // 1. Real-time Class Sync
+  // Real-time Class Sync
   useEffect(() => {
-    const qClasses = query(
+    const safeQuery = query(
       collection(db, "classes"),
-      orderBy("createdAt", "desc"),
+      orderBy("createdAt", "desc")
     );
-    const unsubClasses = onSnapshot(qClasses, (snapshot) => {
-      const classData = snapshot.docs.map((doc) => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          ...data,
-          name: data.title || "Untitled Class",
-          teacher: data.instructorName || "Unknown Instructor",
-          code: data.courseCode || "N/A",
-          students: data.studentCount || 0,
-          color: data.color || "#2563eb",
-          status: data.status || "active",
-        };
-      });
-      setClasses(classData);
-      setLoadingClasses(false);
-    });
+
+    const unsubClasses = onSnapshot(
+      safeQuery,
+      (snapshot) => {
+        const classData = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            name: data.title || "Untitled Class",
+            teacher: data.instructorName || "Unknown Instructor",
+            code: data.courseCode || "N/A",
+            students: data.studentCount || 0,
+            color: data.color || "#2563eb",
+            status: data.status || "active",
+          };
+        });
+        setClasses(classData);
+        setLoadingClasses(false);
+      },
+      (error) => {
+        console.error("Error fetching classes:", error);
+        setLoadingClasses(false);
+      }
+    );
+
     return () => unsubClasses();
   }, []);
 
-  // 2. Real-time Assignments Sync (Replacing mockAssignments)
-  useEffect(() => {
-    if (!user) return;
-    const qAssignments = query(
-      collection(db, "assignments"),
-      // You can add a where() clause here to filter by user's classes if needed
-      // where("classId", "in", userClassIds)
-    );
-    const unsubAssignments = onSnapshot(qAssignments, (snapshot) => {
-      const assignmentData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      setAssignments(assignmentData);
-    });
-    return () => unsubAssignments();
-  }, [user]);
-
-  // 3. Fetch Dropdown Data (Campuses, Courses, and Students)
+  // Fetch dropdown data
   useEffect(() => {
     const fetchDropdownData = async () => {
       try {
-        const campusSnap = await getDocs(collection(db, "campuses"));
-        const courseSnap = await getDocs(collection(db, "courses"));
-
-        const studentQuery = query(
-          collection(db, "users"),
-          where("roleName", "==", "student"),
-        );
-        const studentSnap = await getDocs(studentQuery);
+        const [campusSnap, courseSnap, studentSnap] = await Promise.all([
+          getDocs(collection(db, "campuses")),
+          getDocs(collection(db, "courses")),
+          getDocs(query(collection(db, "users"), where("roleName", "==", "student"))),
+        ]);
 
         setCampuses(
-          campusSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+          campusSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
         );
         setCourses(
-          courseSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
+          courseSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
         );
         setStudentsList(
           studentSnap.docs.map((doc) => ({
             id: doc.id,
-            name:
-              doc.data().name || doc.data().displayName || "Unnamed Student",
-            ...doc.data(),
-          })),
+            name: doc.data().name || doc.data().displayName || "Unnamed Student",
+            email: doc.data().email,
+          }))
         );
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
@@ -178,32 +152,62 @@ const Dashboard = () => {
   }, []);
 
   const handleCreateClass = async () => {
-    if (
-      !formData.title ||
-      !formData.campus ||
-      !formData.course ||
-      !formData.timing
-    ) {
-      alert(
-        "Please fill in all required fields (Title, Campus, Timing, and Course)",
-      );
+    const { title, campus, course, timing, selectedStudents } = formData;
+
+    if (!title || !campus || !course || !timing) {
+      alert("Please fill in all required fields.");
       return;
     }
+
     setLoading(true);
     try {
-      await addDoc(collection(db, "classes"), {
-        ...formData,
-        createdAt: serverTimestamp(),
-        teacherId: user?.uid, // Use real user ID
-        studentCount: formData.selectedStudents.length,
-        courseCode:
-          formData.title.substring(0, 3).toUpperCase() +
-          Math.floor(100 + Math.random() * 899),
-        color: ["#2563eb", "#10b981", "#7c3aed", "#f59e0b"][
-          Math.floor(Math.random() * 4)
-        ],
+      const courseCode =
+        (title.substring(0, 3).toUpperCase() || "CLS") +
+        Math.floor(100 + Math.random() * 899);
+
+      const colors = [
+        "#2563eb",
+        "#10b981",
+        "#7c3aed",
+        "#f59e0b",
+        "#ec4899",
+        "#06b6d4",
+      ];
+      const randomColor = colors[Math.floor(Math.random() * colors.length)];
+
+      // Store full student objects
+      const studentObjects = selectedStudents.map((s) => ({
+        id: s.id,
+        name: s.name,
+        email: s.email,
+      }));
+
+      const batch = writeBatch(db);
+      const classRef = doc(collection(db, "classes"));
+      batch.set(classRef, {
+        title,
+        campus,
+        course,
+        timing,
+        students: studentObjects,          // array of objects
+        studentCount: studentObjects.length,
+        instructorName: mockUser.name,
+        teacherId: mockUser.id,
+        courseCode,
+        color: randomColor,
         status: "active",
+        createdAt: serverTimestamp(),
       });
+
+      // Update each student's enrolledClasses
+      studentObjects.forEach((student) => {
+        const userRef = doc(db, "users", student.id);
+        batch.update(userRef, {
+          enrolledClasses: arrayUnion(classRef.id),
+        });
+      });
+
+      await batch.commit();
 
       setOpen(false);
       setFormData({
@@ -212,92 +216,112 @@ const Dashboard = () => {
         course: "",
         timing: "",
         selectedStudents: [],
-        instructorName: user?.name || user?.displayName || "Unknown Instructor",
       });
     } catch (e) {
       console.error("Error creating class:", e);
+      alert("Failed to create class. Check console for details.");
     } finally {
       setLoading(false);
     }
   };
 
-  // 4. Actual Join Class Functionality
   const handleJoinClass = async () => {
-    if (!joinCode || !user) return;
+    if (!joinCode) return;
     setLoading(true);
+    setJoinError("");
+
     try {
-      // Find the class with the matching code
-      const q = query(
-        collection(db, "classes"),
-        where("courseCode", "==", joinCode.toUpperCase()),
-      );
+      const classesRef = collection(db, "classes");
+      const q = query(classesRef, where("courseCode", "==", joinCode.trim()));
       const querySnapshot = await getDocs(q);
 
       if (querySnapshot.empty) {
-        alert("Invalid class code. Please try again.");
+        setJoinError("No class found with that code.");
         setLoading(false);
         return;
       }
 
-      // Get the document reference for the matched class
       const classDoc = querySnapshot.docs[0];
-      const classRef = doc(db, "classes", classDoc.id);
+      const classId = classDoc.id;
+      const classData = classDoc.data();
 
-      // Add the current user to the class's selectedStudents array & increment count
-      await updateDoc(classRef, {
-        selectedStudents: arrayUnion(
-          user.name || user.displayName || "Unknown Student",
-        ),
-        studentCount: increment(1),
+      // Check if already enrolled (by id)
+      if (classData.students?.some((s) => s.id === mockUser.id)) {
+        setJoinError("You are already enrolled in this class.");
+        setLoading(false);
+        return;
+      }
+
+      // Fetch current user's details
+      const userSnap = await getDoc(doc(db, "users", mockUser.id));
+      const userData = userSnap.data();
+
+      const studentObject = {
+        id: mockUser.id,
+        name: userData.name || mockUser.name,
+        email: userData.email,
+      };
+
+      const batch = writeBatch(db);
+      const classRef = doc(db, "classes", classId);
+      const userRef = doc(db, "users", mockUser.id);
+      batch.update(classRef, {
+        students: arrayUnion(studentObject),
+        studentCount: (classData.studentCount || 0) + 1,
       });
+      batch.update(userRef, { enrolledClasses: arrayUnion(classId) });
+      await batch.commit();
 
       setOpenJoin(false);
       setJoinCode("");
-      alert("Successfully joined the class!");
-    } catch (err) {
-      console.error("Error joining class:", err);
-      alert("Failed to join class. Check console for details.");
+      alert(`Successfully joined ${classData.title || "the class"}!`);
+    } catch (error) {
+      console.error("Error joining class:", error);
+      setJoinError("An error occurred. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Filter functionality applied based on the filter state
-  const filteredClasses = classes.filter((c) => {
-    if (filter === "all") return true;
-    return c.status?.toLowerCase() === filter.toLowerCase();
-  });
+  const filteredClasses = useMemo(() => {
+    return classes.filter((c) => {
+      if (filter === "all") return true;
+      return c.status?.toLowerCase() === filter.toLowerCase();
+    });
+  }, [classes, filter]);
 
   const stats = [
     {
       title: "Active Classes",
       value: classes.filter((c) => c.status === "active").length,
-      change: "Updated real-time",
+      change: "+2 this month",
       icon: <TrendingUpIcon />,
       color: "primary",
     },
     {
       title: "Pending Assignments",
-      value: assignments.filter((a) => a.status === "pending").length,
-      change: "Requires attention",
+      value: mockAssignments.filter((a) => a.status === "pending").length,
+      change: "3 due this week",
       icon: <AssignmentIcon />,
       color: "warning",
     },
     {
       title: "Upcoming Events",
-      value: 5, // You can replace this with a real events fetch similar to assignments
+      value: 5,
       change: "Next: Tomorrow",
       icon: <EventIcon />,
       color: "success",
     },
     {
       title: "Unread Notifications",
-      value: 3, // Can be replaced by real notifications count
+      value: 3,
       change: "2 new today",
       icon: <NotificationsIcon />,
       color: "error",
     },
   ];
+
+  const canCreateClass = mockUser.role === "teacher";
 
   return (
     <Box
@@ -319,45 +343,45 @@ const Dashboard = () => {
             flexDirection: { xs: "column", md: "row" },
             justifyContent: "space-between",
             alignItems: { xs: "flex-start", md: "center" },
-            mb: 10,
+            mb: 6,
+            gap: 2,
           }}
         >
           <Box>
             <Typography
-              variant="h3"
+              variant={isMobile ? "h4" : "h3"}
               sx={{
                 fontWeight: 800,
-                color: darkMode ? "gray.100" : "#1e293b",
+                color: darkMode ? "#f1f5f9" : "#1e293b",
                 letterSpacing: -1,
                 mb: 1,
-                fontFamily: "Montserrat",
+                fontFamily: "Montserrat, sans-serif",
               }}
             >
-              {/* Uses real user name */}
-              Hello, {
-                (user?.name || user?.displayName || "User").split(" ")[0]
-              }{" "}
-              👋
+              Hello, {mockUser.name.split(" ")[0]} 👋
             </Typography>
             <Typography
               variant="body1"
-              sx={{ color: darkMode ? "gray.400" : "#64748b" }}
+              sx={{ color: darkMode ? "#94a3b8" : "#64748b" }}
             >
               Master your schedule and lead your students to success.
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", gap: 2, mt: { xs: 4, md: 0 } }}>
-            {/* Uses real user role */}
-            {(user?.role === "teacher" || user?.roleName === "teacher") && (
+          <Box
+            sx={{ display: "flex", gap: 2, width: { xs: "100%", md: "auto" } }}
+          >
+            {canCreateClass && (
               <Button
                 variant="contained"
                 startIcon={<AddIcon />}
                 onClick={() => setOpen(true)}
+                fullWidth={isMobile}
                 sx={{
                   borderRadius: "12px",
                   px: 3,
                   py: 1.2,
                   textTransform: "none",
+                  fontWeight: 600,
                   bgcolor: "#2563eb",
                   "&:hover": { bgcolor: "#1d4ed8" },
                 }}
@@ -369,13 +393,15 @@ const Dashboard = () => {
               variant="outlined"
               startIcon={<GroupAddIcon />}
               onClick={() => setOpenJoin(true)}
+              fullWidth={isMobile}
               sx={{
                 borderRadius: "12px",
                 px: 3,
                 py: 1.2,
                 textTransform: "none",
-                color: darkMode ? "gray.200" : "#64748b",
-                borderColor: darkMode ? "gray.700" : "#d1d5db",
+                fontWeight: 600,
+                color: darkMode ? "#e2e8f0" : "#64748b",
+                borderColor: darkMode ? "#475569" : "#cbd5e1",
               }}
             >
               Join Class
@@ -384,7 +410,6 @@ const Dashboard = () => {
         </Box>
       </motion.div>
 
-      {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 6 }}>
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} lg={3} key={index}>
@@ -398,31 +423,55 @@ const Dashboard = () => {
           <Paper
             elevation={0}
             sx={{
-              p: 6,
+              p: { xs: 3, md: 5 },
               borderRadius: "24px",
               bgcolor: darkMode ? "#1e293b" : "white",
               border: "1px solid",
-              borderColor: darkMode ? "gray.700" : "gray.200",
+              borderColor: darkMode ? "#334155" : "#e2e8f0",
             }}
           >
-            <Box className="flex flex-col md:flex-row justify-between items-center mb-6">
-              <Box className="flex items-center gap-3">
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", md: "row" },
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 4,
+                gap: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 2,
+                  width: "100%",
+                }}
+              >
                 <Box
-                  className={`p-2 rounded-xl ${darkMode ? "bg-gray-700 text-blue-400" : "bg-blue-50 text-blue-600"}`}
+                  sx={{
+                    p: 1.5,
+                    borderRadius: "12px",
+                    bgcolor: darkMode ? "rgba(59, 130, 246, 0.2)" : "#eff6ff",
+                    color: "#3b82f6",
+                  }}
                 >
                   <SchoolIcon />
                 </Box>
                 <Box>
                   <Typography
                     variant="h6"
-                    sx={{ fontWeight: 800, fontFamily: "Montserrat" }}
+                    sx={{
+                      fontWeight: 800,
+                      fontFamily: "Montserrat, sans-serif",
+                    }}
                   >
                     Academic Overview
                   </Typography>
                   <Typography
                     variant="caption"
                     sx={{
-                      color: darkMode ? "gray.400" : "#94a3b8",
+                      color: darkMode ? "#94a3b8" : "#64748b",
                       fontWeight: 600,
                     }}
                   >
@@ -430,36 +479,46 @@ const Dashboard = () => {
                   </Typography>
                 </Box>
               </Box>
-              <Box className="flex items-center gap-4 mt-4 md:mt-0">
-                {/* 5. Added Filter Dropdown to make use of setFilter */}
-                <FormControl size="small">
-                  <Select
-                    value={filter}
-                    onChange={(e) => setFilter(e.target.value)}
-                    sx={{
-                      borderRadius: "8px",
-                      color: darkMode ? "white" : "inherit",
-                      "& .MuiOutlinedInput-notchedOutline": {
-                        borderColor: darkMode ? "gray.600" : "inherit",
-                      },
-                    }}
-                  >
-                    <MenuItem value="all">All Classes</MenuItem>
-                    <MenuItem value="active">Active</MenuItem>
-                    <MenuItem value="archived">Archived</MenuItem>
-                  </Select>
-                </FormControl>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  gap: 2,
+                  width: { xs: "100%", md: "auto" },
+                  justifyContent: "flex-end",
+                }}
+              >
+                <TextField
+                  select
+                  size="small"
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <FilterListIcon
+                        fontSize="small"
+                        sx={{ mr: 1, color: "text.secondary" }}
+                      />
+                    ),
+                  }}
+                  sx={{ minWidth: 120 }}
+                >
+                  <MenuItem value="all">All Status</MenuItem>
+                  <MenuItem value="active">Active</MenuItem>
+                  <MenuItem value="archived">Archived</MenuItem>
+                </TextField>
 
                 <ToggleButtonGroup
                   value={viewMode}
                   exclusive
                   onChange={(e, val) => val && setViewMode(val)}
                   size="small"
+                  aria-label="view mode"
                 >
-                  <ToggleButton value="grid">
+                  <ToggleButton value="grid" aria-label="grid view">
                     <GridViewIcon fontSize="small" />
                   </ToggleButton>
-                  <ToggleButton value="list">
+                  <ToggleButton value="list" aria-label="list view">
                     <ViewListIcon fontSize="small" />
                   </ToggleButton>
                 </ToggleButtonGroup>
@@ -467,8 +526,19 @@ const Dashboard = () => {
             </Box>
 
             {loadingClasses ? (
-              <Box className="flex justify-center p-10">
+              <Box sx={{ display: "flex", justifyContent: "center", p: 10 }}>
                 <CircularProgress />
+              </Box>
+            ) : filteredClasses.length === 0 ? (
+              <Box
+                sx={{
+                  textAlign: "center",
+                  py: 8,
+                  color: "text.secondary",
+                }}
+              >
+                <SchoolIcon sx={{ fontSize: 60, mb: 2, opacity: 0.5 }} />
+                <Typography>No classes found matching your filter.</Typography>
               </Box>
             ) : viewMode === "grid" ? (
               <ClassGrid classes={filteredClasses} darkMode={darkMode} />
@@ -479,13 +549,21 @@ const Dashboard = () => {
         </Grid>
 
         <Grid item xs={12} lg={3.5}>
-          <Box className="space-y-6 sticky top-6">
-            <UpcomingAssignments
-              darkMode={darkMode}
-              assignments={assignments}
-            />
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 3,
+              position: { lg: "sticky" },
+              top: 24,
+            }}
+          >
+            <UpcomingAssignments darkMode={darkMode} />
             <ProgressChart
-              data={classes.map((c) => ({ name: c.name, value: c.students }))}
+              data={classes.map((c) => ({
+                name: c.name,
+                value: c.students,
+              }))}
               darkMode={darkMode}
             />
           </Box>
@@ -501,123 +579,141 @@ const Dashboard = () => {
         PaperProps={{
           sx: {
             borderRadius: "24px",
-            p: 2,
+            p: 1,
             bgcolor: darkMode ? "#1e293b" : "white",
             color: darkMode ? "white" : "black",
+            backgroundImage: "none",
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>🚀 Launch New Class</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Class Title"
-            margin="normal"
-            value={formData.title}
-            onChange={(e) =>
-              setFormData({ ...formData, title: e.target.value })
-            }
-            sx={{ mb: 2 }}
-          />
+        <DialogTitle sx={{ fontWeight: 800, fontSize: "1.5rem", pb: 1 }}>
+          🚀 Launch New Class
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2 }}>
+          <Box component="form" noValidate autoComplete="off">
+            <TextField
+              fullWidth
+              label="Class Title"
+              placeholder="e.g. Advanced Mathematics"
+              margin="normal"
+              value={formData.title}
+              onChange={(e) =>
+                setFormData({ ...formData, title: e.target.value })
+              }
+              sx={{ mb: 2 }}
+              InputLabelProps={{ shrink: true }}
+            />
 
-          <Grid container spacing={2}>
-            <Grid item xs={6}>
-              <TextField
-                select
-                fullWidth
-                label="Campus"
-                value={formData.campus}
-                onChange={(e) =>
-                  setFormData({ ...formData, campus: e.target.value })
-                }
-              >
-                {campuses.map((c) => (
-                  <MenuItem key={c.id} value={c.name}>
-                    {c.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={6}>
-              <TextField
-                select
-                fullWidth
-                label="Timing"
-                value={formData.timing}
-                onChange={(e) =>
-                  setFormData({ ...formData, timing: e.target.value })
-                }
-              >
-                {timings.map((t) => (
-                  <MenuItem key={t} value={t}>
-                    {t}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                select
-                fullWidth
-                label="Course"
-                value={formData.course}
-                onChange={(e) =>
-                  setFormData({ ...formData, course: e.target.value })
-                }
-              >
-                {courses.map((c) => (
-                  <MenuItem key={c.id} value={c.name}>
-                    {c.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-
-            {/* Student Multi-Select */}
-            <Grid item xs={12}>
-              <FormControl fullWidth sx={{ mt: 1 }}>
-                <InputLabel id="student-select-label">Add Students</InputLabel>
-                <Select
-                  labelId="student-select-label"
-                  multiple
-                  value={formData.selectedStudents}
+            <Grid container spacing={2}>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Campus"
+                  value={formData.campus}
                   onChange={(e) =>
+                    setFormData({ ...formData, campus: e.target.value })
+                  }
+                >
+                  {campuses.map((c) => (
+                    <MenuItem key={c.id} value={c.name}>
+                      {c.name}
+                    </MenuItem>
+                  ))}
+                  {campuses.length === 0 && (
+                    <MenuItem disabled>No Campuses Loaded</MenuItem>
+                  )}
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Timing"
+                  value={formData.timing}
+                  onChange={(e) =>
+                    setFormData({ ...formData, timing: e.target.value })
+                  }
+                >
+                  {timings.map((t) => (
+                    <MenuItem key={t} value={t}>
+                      {t}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Course Type"
+                  value={formData.course}
+                  onChange={(e) =>
+                    setFormData({ ...formData, course: e.target.value })
+                  }
+                >
+                  {courses.map((c) => (
+                    <MenuItem key={c.id} value={c.name}>
+                      {c.name}
+                    </MenuItem>
+                  ))}
+                  {courses.length === 0 && (
+                    <MenuItem disabled>No Courses Loaded</MenuItem>
+                  )}
+                </TextField>
+              </Grid>
+
+              <Grid item xs={12}>
+                <Autocomplete
+                  multiple
+                  id="students-autocomplete"
+                  options={studentsList}
+                  getOptionLabel={(option) => option.name}
+                  value={formData.selectedStudents}
+                  onChange={(event, newValue) => {
                     setFormData({
                       ...formData,
-                      selectedStudents: e.target.value,
-                    })
-                  }
-                  input={<OutlinedInput label="Add Students" />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                      {selected.map((value) => (
-                        <Chip key={value} label={value} size="small" />
-                      ))}
-                    </Box>
+                      selectedStudents: newValue,
+                    });
+                  }}
+                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  renderInput={(params) => (
+                    <TextField
+                      {...params}
+                      label="Add Students"
+                      placeholder="Search students..."
+                    />
                   )}
-                >
-                  {studentsList.length > 0 ? (
-                    studentsList.map((student) => (
-                      <MenuItem key={student.id} value={student.name}>
-                        {student.name}
-                      </MenuItem>
+                  renderTags={(tagValue, getTagProps) =>
+                    tagValue.map((option, index) => (
+                      <Chip
+                        label={option.name}
+                        {...getTagProps({ index })}
+                        size="small"
+                      />
                     ))
-                  ) : (
-                    <MenuItem disabled>No students found</MenuItem>
-                  )}
-                </Select>
-              </FormControl>
+                  }
+                  sx={{ mt: 1 }}
+                />
+              </Grid>
             </Grid>
-          </Grid>
+          </Box>
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setOpen(false)}>Cancel</Button>
+        <DialogActions sx={{ p: 3, pt: 1 }}>
+          <Button onClick={() => setOpen(false)} sx={{ color: "text.secondary" }}>
+            Cancel
+          </Button>
           <Button
             onClick={handleCreateClass}
             variant="contained"
             disabled={loading}
+            sx={{ borderRadius: "8px", px: 4 }}
           >
-            {loading ? <CircularProgress size={24} /> : "Create Class"}
+            {loading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              "Create Class"
+            )}
           </Button>
         </DialogActions>
       </Dialog>
@@ -633,27 +729,51 @@ const Dashboard = () => {
             borderRadius: "24px",
             p: 2,
             bgcolor: darkMode ? "#1e293b" : "white",
+            backgroundImage: "none",
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 800 }}>🔑 Join Environment</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 800, textAlign: "center" }}>
+          🔑 Join Environment
+        </DialogTitle>
         <DialogContent>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            align="center"
+            sx={{ mb: 2 }}
+          >
+            Enter the unique 6-digit code provided by your instructor.
+          </Typography>
           <TextField
             fullWidth
-            placeholder="Enter Class Code"
-            margin="normal"
+            placeholder="e.g. MTH-101"
+            autoFocus
+            variant="outlined"
             value={joinCode}
-            onChange={(e) => setJoinCode(e.target.value)}
+            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+            inputProps={{
+              style: {
+                textAlign: "center",
+                fontSize: "1.2rem",
+                letterSpacing: "2px",
+              },
+            }}
+            error={!!joinError}
+            helperText={joinError}
           />
         </DialogContent>
-        <DialogActions sx={{ p: 3 }}>
-          <Button onClick={() => setOpenJoin(false)}>Cancel</Button>
+        <DialogActions sx={{ p: 3, justifyContent: "center" }}>
+          <Button onClick={() => setOpenJoin(false)} sx={{ mr: 2 }}>
+            Cancel
+          </Button>
           <Button
             onClick={handleJoinClass}
             variant="contained"
             disabled={!joinCode || loading}
+            sx={{ borderRadius: "8px", px: 4 }}
           >
-            {loading ? <CircularProgress size={24} /> : "Join"}
+            {loading ? <CircularProgress size={20} /> : "Join Now"}
           </Button>
         </DialogActions>
       </Dialog>

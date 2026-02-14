@@ -8,13 +8,25 @@ import {
   Button,
 } from "@mui/material";
 import { motion, AnimatePresence } from "framer-motion";
-import { DUMMY_NOTIFICATIONS } from "../../data/dummyData";
 import { Bell, Trash2, CheckCheck, Check, Inbox } from "lucide-react";
+import { db } from "../../firebase/config";
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  updateDoc,
+  doc,
+  deleteDoc,
+  writeBatch,
+} from "firebase/firestore";
+import { useAuth } from "../../context/AuthContext";
 
 export default function NotificationsPage() {
-  const [notifications, setNotifications] = useState(DUMMY_NOTIFICATIONS);
-
-  // ✅ GLOBAL DARK MODE WATCHER
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isDark, setIsDark] = useState(
     document.documentElement.classList.contains("dark"),
   );
@@ -30,23 +42,68 @@ export default function NotificationsPage() {
     return () => observer.disconnect();
   }, []);
 
-  const markAsRead = (id) => {
-    setNotifications(
-      notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
+  useEffect(() => {
+    if (!user?.id) {
+      setNotifications([]);
+      setLoading(false);
+      return;
+    }
+
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", String(user.id)),
+      orderBy("createdAt", "desc")
     );
+
+    const unsub = onSnapshot(
+      q,
+      (snapshot) => {
+        const notifs = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+          timestamp: doc.data().createdAt?.toDate?.() || new Date(),
+        }));
+        setNotifications(notifs);
+        setLoading(false);
+      },
+      (error) => {
+        console.error("Error fetching notifications:", error);
+        setLoading(false);
+      }
+    );
+
+    return () => unsub();
+  }, [user?.id]);
+
+  const markAsRead = async (id) => {
+    try {
+      await updateDoc(doc(db, "notifications", id), { read: true });
+    } catch (error) {
+      console.error("Error marking as read:", error);
+    }
   };
 
-  const markAllAsRead = () => {
-    setNotifications(notifications.map((n) => ({ ...n, read: true })));
+  const markAllAsRead = async () => {
+    if (unreadCount === 0) return;
+    const batch = writeBatch(db);
+    notifications.forEach((notif) => {
+      if (!notif.read) {
+        batch.update(doc(db, "notifications", notif.id), { read: true });
+      }
+    });
+    await batch.commit();
   };
 
-  const deleteNotification = (id) => {
-    setNotifications(notifications.filter((n) => n.id !== id));
+  const deleteNotification = async (id) => {
+    try {
+      await deleteDoc(doc(db, "notifications", id));
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+    }
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // ✅ THEME MAPPING
   const theme = {
     pageBg: isDark ? "!bg-gray-900" : "!bg-[#f8fafc]",
     textMain: isDark ? "!text-gray-100" : "!text-[#1e293b]",
@@ -56,17 +113,25 @@ export default function NotificationsPage() {
       : "bg-white text-[#2563eb] border-blue-100 hover:bg-blue-50",
   };
 
+  if (loading) {
+    return (
+      <Box className={`min-h-screen p-6 ${theme.pageBg}`}>
+        <Box className="max-w-3xl mx-auto text-center py-20">
+          <Typography>Loading notifications...</Typography>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <Box
-        className={`min-h-screen p-6 transition-colors duration-300 ${theme.pageBg}`}
-      >
+      <Box className={`min-h-screen p-6 transition-colors duration-300 ${theme.pageBg}`}>
         <Box className="max-w-3xl mx-auto">
-          {/* Header Section */}
+          {/* Header */}
           <Box className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-4">
             <Box>
               <div className="flex items-center gap-2 mb-1">
@@ -168,12 +233,14 @@ export default function NotificationsPage() {
                               isDark ? "text-gray-500" : "text-slate-400"
                             }`}
                           >
-                            {new Date(n.timestamp).toLocaleString([], {
-                              month: "short",
-                              day: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {n.timestamp instanceof Date && !isNaN(n.timestamp)
+                              ? n.timestamp.toLocaleString([], {
+                                  month: "short",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })
+                              : "Just now"}
                           </Typography>
                         </Box>
                       </Box>
@@ -213,7 +280,9 @@ export default function NotificationsPage() {
             {notifications.length === 0 && (
               <Box className="text-center py-20">
                 <div
-                  className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? "bg-gray-800" : "bg-slate-100"}`}
+                  className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${
+                    isDark ? "bg-gray-800" : "bg-slate-100"
+                  }`}
                 >
                   <Inbox
                     size={32}
