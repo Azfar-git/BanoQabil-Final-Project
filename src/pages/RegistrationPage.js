@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import {
@@ -6,6 +6,7 @@ import {
   setDoc,
   collection,
   getDocs,
+  addDoc,
   serverTimestamp,
 } from "firebase/firestore";
 import { auth, db } from "../firebase/config";
@@ -19,10 +20,14 @@ import {
   AlertCircle,
   CheckCircle,
 } from "lucide-react";
+import RolesContext from "../contexts/rolesContext/rolesContext";
+import { roles as userRole } from "../constants";
 
 const RegistrationPage = () => {
   const navigate = useNavigate();
 
+  const { roles } = useContext(RolesContext);
+  const rolesLoaded = Array.isArray(roles) && roles.length > 0;
   const [loading, setLoading] = useState(false);
   const [coursesLoading, setCoursesLoading] = useState(true);
   const [error, setError] = useState("");
@@ -39,7 +44,7 @@ const RegistrationPage = () => {
     dateOfBirth: "",
     education: "",
     courseInterest: "",
-    agreeToTerms: false, 
+    agreeToTerms: false,
   });
 
   // ✅ Fetch Courses from Firestore
@@ -99,17 +104,44 @@ const RegistrationPage = () => {
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
-        formData.password
+        formData.password,
       );
 
       const user = userCredential.user;
 
       const selectedCourse = courses.find(
-        (course) => course.id === formData.courseInterest
+        (course) => course.id === formData.courseInterest,
       );
 
       if (!selectedCourse) {
         throw new Error("Selected course not found");
+      }
+
+      const getRole =
+        roles && roles.find((item) => item.name === userRole.students);
+
+      let roleId;
+      let roleName;
+
+      if (getRole) {
+        roleId = getRole.id;
+        roleName = getRole.name;
+      } else {
+        // create the 'students' role document so we get a Firestore-generated id
+        try {
+          const roleDocRef = await addDoc(collection(db, "roles"), {
+            name: userRole.students,
+            createdAt: serverTimestamp(),
+          });
+          roleId = roleDocRef.id;
+          roleName = userRole.students;
+          // console.info("Created 'students' role with id:", roleId);
+        } catch (err) {
+          // console.error("Failed to create 'students' role:", err);
+          // fallback to literal name if creation fails
+          roleId = userRole.students;
+          roleName = userRole.students;
+        }
       }
 
       // ✅ Save user in Firestore
@@ -123,7 +155,8 @@ const RegistrationPage = () => {
         education: formData.education,
         courseId: selectedCourse.id,
         courseName: selectedCourse.name,
-        role: "student",
+        roleId,
+        roleName,
         status: "pending",
         createdAt: serverTimestamp(),
       });
@@ -139,7 +172,7 @@ const RegistrationPage = () => {
       switch (error.code) {
         case "auth/email-already-in-use":
           setError(
-            "This email is already registered. Please use a different email or login."
+            "This email is already registered. Please use a different email or login.",
           );
           break;
         case "auth/invalid-email":
@@ -335,7 +368,10 @@ const RegistrationPage = () => {
                       Terms and Conditions
                     </Link>{" "}
                     and{" "}
-                    <Link to="/privacy" className="text-blue-600 hover:underline">
+                    <Link
+                      to="/privacy"
+                      className="text-blue-600 hover:underline"
+                    >
                       Privacy Policy
                     </Link>
                   </label>
@@ -343,10 +379,14 @@ const RegistrationPage = () => {
 
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || coursesLoading}
                   className="w-full py-3 px-6 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-600 to-purple-600"
                 >
-                  {loading ? "Processing..." : "Register Now"}
+                  {loading
+                    ? "Processing..."
+                    : coursesLoading
+                      ? "Loading courses..."
+                      : "Register Now"}
                 </button>
 
                 <div className="mt-6 text-center">

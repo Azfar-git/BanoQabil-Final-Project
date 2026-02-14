@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from "react";
 import RolesContext from "./rolesContext";
-import rolesReducer from "./rolesReducer.";
+import rolesReducer from "./rolesReducer";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import { GET_ALL_ROLES } from "../types";
