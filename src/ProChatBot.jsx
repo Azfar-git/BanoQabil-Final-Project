@@ -69,7 +69,6 @@ export default function ProChatbot() {
     if (!message.trim() || loading) return;
 
     const userMessage = message;
-
     const newHistory = [...messages, { sender: "user", text: userMessage }];
     setMessages(newHistory);
     setMessage("");
@@ -90,8 +89,8 @@ export default function ProChatbot() {
 
       const data = await res.json();
       let botReply = data.reply;
-
       let detectedMood = "default";
+
       if (botReply.includes("[MOOD:EMPATHY]")) {
         detectedMood = "empathy";
         botReply = botReply.replace("[MOOD:EMPATHY]", "");
@@ -135,10 +134,10 @@ export default function ProChatbot() {
 
   const getMoodStyles = (mood) => {
     if (mood === "empathy")
-      return "bg-purple-50 border-purple-200 shadow-[0_0_20px_rgba(147,51,234,0.25)] text-purple-950";
+      return "bg-purple-50 dark:bg-purple-900 border-purple-200 dark:border-purple-700 text-purple-950 dark:text-purple-200 shadow-[0_0_20px_rgba(147,51,234,0.25)]";
     if (mood === "hyped")
-      return "bg-orange-50 border-orange-200 shadow-[0_0_20px_rgba(249,115,22,0.25)] text-orange-950";
-    return "bg-white border-gray-100 text-gray-800";
+      return "bg-orange-50 dark:bg-orange-900 border-orange-200 dark:border-orange-700 text-orange-950 dark:text-orange-200 shadow-[0_0_20px_rgba(249,115,22,0.25)]";
+    return "bg-white dark:bg-gray-700 border-gray-100 dark:border-gray-600 text-gray-800 dark:text-gray-200";
   };
 
   return (
@@ -149,7 +148,7 @@ export default function ProChatbot() {
             initial={{ opacity: 0, y: 10, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.9 }}
-            className="mb-3 bg-white text-blue-600 text-[12px] font-bold rounded-2xl px-4 py-2 shadow-2xl border border-blue-50 mr-2"
+            className="mb-3 bg-white dark:bg-gray-800 text-blue-600 dark:text-blue-400 text-[12px] font-bold rounded-2xl px-4 py-2 shadow-2xl border border-blue-50 dark:border-blue-700 mr-2"
           >
             Need help? ✋
           </motion.div>
@@ -173,7 +172,7 @@ export default function ProChatbot() {
               transition: { duration: 0.2 },
             }}
             transition={{ type: "spring", stiffness: 260, damping: 25 }}
-            className="w-[90vw] max-w-[340px] h-[500px] bg-white rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden border border-gray-100 mb-4"
+            className="w-[90vw] max-w-[340px] h-[500px] bg-white dark:bg-gray-800 rounded-3xl shadow-[0_20px_60px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden border border-gray-100 dark:border-gray-700 mb-4"
           >
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-5 py-4 flex justify-between items-center">
               <div>
@@ -182,7 +181,13 @@ export default function ProChatbot() {
                 </div>
                 <div className="flex items-center gap-1.5 mt-1.5">
                   <span
-                    className={`w-2 h-2 rounded-full animate-pulse ${currentMood === "hyped" ? "bg-orange-300" : currentMood === "empathy" ? "bg-purple-300" : "bg-green-400"}`}
+                    className={`w-2 h-2 rounded-full animate-pulse ${
+                      currentMood === "hyped"
+                        ? "bg-orange-300 dark:bg-orange-500"
+                        : currentMood === "empathy"
+                        ? "bg-purple-300 dark:bg-purple-500"
+                        : "bg-green-400 dark:bg-green-500"
+                    }`}
                   />
                   <span className="text-[10px] opacity-90 uppercase tracking-widest font-semibold">
                     {userRole === "student"
@@ -208,16 +213,22 @@ export default function ProChatbot() {
               </button>
             </div>
 
-            <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-[#f9fafb]">
+            <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50 dark:bg-gray-900">
               {messages.map((msg, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className={`flex flex-col ${msg.sender === "user" ? "items-end" : "items-start"}`}
+                  className={`flex flex-col ${
+                    msg.sender === "user" ? "items-end" : "items-start"
+                  }`}
                 >
                   <div
-                    className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-[13px] shadow-sm ${msg.sender === "user" ? "bg-blue-600 text-white rounded-br-none" : `rounded-bl-none border ${getMoodStyles(msg.mood)}`}`}
+                    className={`max-w-[85%] px-4 py-2.5 rounded-2xl text-[13px] shadow-sm ${
+                      msg.sender === "user"
+                        ? "bg-blue-600 text-white rounded-br-none"
+                        : `rounded-bl-none border ${getMoodStyles(msg.mood)}`
+                    }`}
                   >
                     <ReactMarkdown
                       components={{
@@ -225,7 +236,7 @@ export default function ProChatbot() {
                           <p className="m-0 leading-relaxed">{children}</p>
                         ),
                         strong: ({ children }) => (
-                          <strong className="font-bold text-blue-700">
+                          <strong className="font-bold text-blue-700 dark:text-blue-300">
                             {children}
                           </strong>
                         ),
@@ -258,14 +269,6 @@ export default function ProChatbot() {
                         target="_blank"
                         className="mt-2 flex items-center gap-2 bg-[#25D366] text-white text-[12px] font-bold py-2 px-4 rounded-xl shadow-lg hover:scale-105 transition-all w-fit"
                       >
-                        <svg
-                          width="14"
-                          height="14"
-                          fill="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
-                        </svg>
                         Chat on WhatsApp
                       </motion.a>
                     )}
@@ -276,20 +279,20 @@ export default function ProChatbot() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="p-4 bg-white rounded-2xl border-t-4 border-blue-600 shadow-xl my-2 border border-gray-100"
+                  className="p-4 bg-white dark:bg-gray-700 rounded-2xl border-t-4 border-blue-600 shadow-xl my-2 border border-gray-100 dark:border-gray-600"
                 >
                   <div className="flex justify-between">
-                    <h4 className="font-bold text-blue-800 text-[13px]">
+                    <h4 className="font-bold text-blue-800 dark:text-blue-300 text-[13px]">
                       🚀 Success Roadmap
                     </h4>
                     <button
                       onClick={() => setShowRoadmap(false)}
-                      className="text-gray-400 hover:text-gray-600"
+                      className="text-gray-400 dark:text-gray-300 hover:text-gray-600"
                     >
                       ✕
                     </button>
                   </div>
-                  <div className="text-[11px] mt-2 space-y-2 text-gray-700">
+                  <div className="text-[11px] mt-2 space-y-2 text-gray-700 dark:text-gray-200">
                     <p>
                       <b>1.</b> Register & Clear Aptitude Test.
                     </p>
@@ -302,9 +305,10 @@ export default function ProChatbot() {
                   </div>
                 </motion.div>
               )}
+
               {loading && (
                 <div className="flex justify-start">
-                  <div className="bg-white border border-gray-100 px-4 py-3 rounded-2xl flex gap-1.5 shadow-sm">
+                  <div className="bg-white dark:bg-gray-700 border border-gray-100 dark:border-gray-600 px-4 py-3 rounded-2xl flex gap-1.5 shadow-sm">
                     <span className="dot" />
                     <span className="dot delay-1" />
                     <span className="dot delay-2" />
@@ -314,7 +318,7 @@ export default function ProChatbot() {
               <div ref={messagesEndRef} />
             </div>
 
-            <div className="p-3 bg-white border-t border-gray-100 flex gap-2 items-center">
+            <div className="p-3 bg-white dark:bg-gray-800 border-t border-gray-100 dark:border-gray-700 flex gap-2 items-center">
               <textarea
                 ref={inputRef}
                 rows="1"
@@ -326,7 +330,7 @@ export default function ProChatbot() {
                     ? "Ask your mentor..."
                     : "Ask me anything..."
                 }
-                className="flex-1 bg-gray-50 border-none rounded-xl px-4 py-2 text-[13px] outline-none resize-none"
+                className="flex-1 bg-gray-50 dark:bg-gray-700 border-none rounded-xl px-4 py-2 text-[13px] text-gray-900 dark:text-gray-100 outline-none resize-none"
               />
               <button
                 onClick={sendMessage}
@@ -369,7 +373,7 @@ export default function ProChatbot() {
             <path
               fillRule="evenodd"
               clipRule="evenodd"
-              d="M12 1C10.8954 1 10 1.89543 10 3C10 3.74028 10.4022 4.38663 11 4.73244V7H6C4.34315 7 3 8.34315 3 10V20C3 21.6569 4.34315 23 6 23H18C19.6569 23 21 21.6569 21 20V10C21 8.34315 19.6569 7 18 7H13V4.73244C13.5978 4.38663 14 3.74028 14 3C14 1.89543 13.1046 1 12 1ZM5 10C5 9.44772 5.44772 9 6 9H7.38197L8.82918 11.8944C9.16796 12.572 9.86049 13 10.618 13H13.382C14.1395 13 14.832 12.572 15.1708 11.8944L16.618 9H18C18.5523 9 19 9.44772 19 10V20C19 20.5523 18.5523 21 18 21H6C5.44772 21 5 20.5523 5 20V10ZM13.382 11L14.382 9H9.61803L10.618 11H13.382Z"
+              d="M12 1C10.8954 1 10 1.89543 10 3C10 3.74028 10.4022 4.38663 11 4.73244V7H6C4.34315 7 3 8.34315 3 10V20C3 21.6569 4.34315 23 6 23H18C19.6569 23 21 21.6569 21 20V10C21 8.34315 19.6569 7 18 7H13V4.73244C13.5978 4.38663 14 3.74028 14 3C14 1.89543 13.1046 1 12 1Z"
               fill="white"
             />
           </svg>
@@ -378,7 +382,8 @@ export default function ProChatbot() {
 
       <style>{`
         .dot { width: 5px; height: 5px; background: #2563EB; border-radius: 50%; animation: dot-bounce 1.4s infinite ease-in-out both; }
-        .delay-1 { animation-delay: 0.2s } .delay-2 { animation-delay: 0.4s }
+        .delay-1 { animation-delay: 0.2s } 
+        .delay-2 { animation-delay: 0.4s }
         @keyframes dot-bounce { 0%, 80%, 100% { transform: scale(0); opacity: 0.3 } 40% { transform: scale(1); opacity: 1 } }
       `}</style>
     </div>
