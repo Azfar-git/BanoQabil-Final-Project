@@ -50,7 +50,7 @@ import ClassTable from "../../components/Dashboard/ClassTable";
 import UpcomingAssignments from "../../components/Dashboard/UpcomingAssignments";
 import StatsCard from "../../components/Dashboard/StatsCard";
 import ProgressChart from "../../components/Widgets/ProgressChart";
-import { mockAssignments, mockUser } from "../../data/mockData";
+import { mockUser } from "../../data/mockData";
 import { useTheme } from "../../context/ThemeContext";
 
 const Dashboard = () => {
@@ -61,6 +61,8 @@ const Dashboard = () => {
   const [filter, setFilter] = useState("all");
   const [classes, setClasses] = useState([]);
   const [loadingClasses, setLoadingClasses] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [pendingAssignments, setPendingAssignments] = useState([]);
   const [open, setOpen] = useState(false);
   const [openJoin, setOpenJoin] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -83,14 +85,14 @@ const Dashboard = () => {
     campus: "",
     course: "",
     timing: "",
-    selectedStudents: [], // stores full student objects
+    selectedStudents: [],
   });
 
   // Real-time Class Sync
   useEffect(() => {
     const safeQuery = query(
       collection(db, "classes"),
-      orderBy("createdAt", "desc")
+      orderBy("createdAt", "desc"),
     );
 
     const unsubClasses = onSnapshot(
@@ -104,7 +106,8 @@ const Dashboard = () => {
             name: data.title || "Untitled Class",
             teacher: data.instructorName || "Unknown Instructor",
             code: data.courseCode || "N/A",
-            students: data.studentCount || 0,
+            studentsArray: data.students || [], // actual student objects
+            students: data.studentCount || 0, // count for display
             color: data.color || "#2563eb",
             status: data.status || "active",
           };
@@ -115,11 +118,64 @@ const Dashboard = () => {
       (error) => {
         console.error("Error fetching classes:", error);
         setLoadingClasses(false);
-      }
+      },
     );
 
     return () => unsubClasses();
   }, []);
+
+  // Real-time Notifications
+  useEffect(() => {
+    if (!mockUser?.id) return;
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", mockUser.id),
+      orderBy("createdAt", "desc"),
+    );
+    const unsub = onSnapshot(q, (snapshot) => {
+      const notifs = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setNotifications(notifs);
+    });
+    return () => unsub();
+  }, []);
+
+  // Real-time Pending Assignments
+  useEffect(() => {
+    if (!mockUser?.id) return;
+    const fetchAssignments = async () => {
+      const userClasses = classes.filter(
+        (c) =>
+          c.studentsArray?.some((s) => s.id === mockUser.id) ||
+          c.teacherId === mockUser.id,
+      );
+      const assignments = [];
+      for (const cls of userClasses) {
+        const postsRef = collection(db, "classes", cls.id, "posts");
+        const q = query(postsRef, where("dueDate", "!=", null));
+        const snapshot = await getDocs(q);
+        snapshot.docs.forEach((doc) => {
+          const data = doc.data();
+          const mySubmission = data.submissions?.find(
+            (s) => s.studentId === mockUser.id,
+          );
+          if (!mySubmission) {
+            assignments.push({
+              id: doc.id,
+              classId: cls.id,
+              className: cls.name,
+              title: data.content?.substring(0, 50) + "...",
+              dueDate: data.dueDate,
+            });
+          }
+        });
+      }
+      setPendingAssignments(assignments);
+    };
+    fetchAssignments();
+  }, [classes]);
 
   // Fetch dropdown data
   useEffect(() => {
@@ -128,21 +184,24 @@ const Dashboard = () => {
         const [campusSnap, courseSnap, studentSnap] = await Promise.all([
           getDocs(collection(db, "campuses")),
           getDocs(collection(db, "courses")),
-          getDocs(query(collection(db, "users"), where("roleName", "==", "student"))),
+          getDocs(
+            query(collection(db, "users"), where("roleName", "==", "student")),
+          ),
         ]);
 
         setCampuses(
-          campusSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+          campusSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
         );
         setCourses(
-          courseSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+          courseSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() })),
         );
         setStudentsList(
           studentSnap.docs.map((doc) => ({
             id: doc.id,
-            name: doc.data().name || doc.data().displayName || "Unnamed Student",
+            name:
+              doc.data().name || doc.data().displayName || "Unnamed Student",
             email: doc.data().email,
-          }))
+          })),
         );
       } catch (err) {
         console.error("Error fetching dropdown data:", err);
@@ -175,7 +234,6 @@ const Dashboard = () => {
       ];
       const randomColor = colors[Math.floor(Math.random() * colors.length)];
 
-      // Store full student objects
       const studentObjects = selectedStudents.map((s) => ({
         id: s.id,
         name: s.name,
@@ -189,7 +247,7 @@ const Dashboard = () => {
         campus,
         course,
         timing,
-        students: studentObjects,          // array of objects
+        students: studentObjects,
         studentCount: studentObjects.length,
         instructorName: mockUser.name,
         teacherId: mockUser.id,
@@ -199,7 +257,6 @@ const Dashboard = () => {
         createdAt: serverTimestamp(),
       });
 
-      // Update each student's enrolledClasses
       studentObjects.forEach((student) => {
         const userRef = doc(db, "users", student.id);
         batch.update(userRef, {
@@ -245,14 +302,12 @@ const Dashboard = () => {
       const classId = classDoc.id;
       const classData = classDoc.data();
 
-      // Check if already enrolled (by id)
       if (classData.students?.some((s) => s.id === mockUser.id)) {
         setJoinError("You are already enrolled in this class.");
         setLoading(false);
         return;
       }
 
-      // Fetch current user's details
       const userSnap = await getDoc(doc(db, "users", mockUser.id));
       const userData = userSnap.data();
 
@@ -294,28 +349,28 @@ const Dashboard = () => {
     {
       title: "Active Classes",
       value: classes.filter((c) => c.status === "active").length,
-      change: "+2 this month",
+      change: `${classes.filter((c) => c.status === "active").length} active`,
       icon: <TrendingUpIcon />,
       color: "primary",
     },
     {
       title: "Pending Assignments",
-      value: mockAssignments.filter((a) => a.status === "pending").length,
-      change: "3 due this week",
+      value: pendingAssignments.length,
+      change: `${pendingAssignments.length} due`,
       icon: <AssignmentIcon />,
       color: "warning",
     },
     {
       title: "Upcoming Events",
-      value: 5,
-      change: "Next: Tomorrow",
+      value: 0,
+      change: "No events",
       icon: <EventIcon />,
       color: "success",
     },
     {
       title: "Unread Notifications",
-      value: 3,
-      change: "2 new today",
+      value: notifications.filter((n) => !n.read).length,
+      change: `${notifications.filter((n) => !n.read).length} new`,
       icon: <NotificationsIcon />,
       color: "error",
     },
@@ -410,6 +465,7 @@ const Dashboard = () => {
         </Box>
       </motion.div>
 
+      {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 6 }}>
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} lg={3} key={index}>
@@ -558,7 +614,10 @@ const Dashboard = () => {
               top: 24,
             }}
           >
-            <UpcomingAssignments darkMode={darkMode} />
+            <UpcomingAssignments
+              assignments={pendingAssignments}
+              darkMode={darkMode}
+            />
             <ProgressChart
               data={classes.map((c) => ({
                 name: c.name,
@@ -676,7 +735,9 @@ const Dashboard = () => {
                       selectedStudents: newValue,
                     });
                   }}
-                  isOptionEqualToValue={(option, value) => option.id === value.id}
+                  isOptionEqualToValue={(option, value) =>
+                    option.id === value.id
+                  }
                   renderInput={(params) => (
                     <TextField
                       {...params}
@@ -700,7 +761,10 @@ const Dashboard = () => {
           </Box>
         </DialogContent>
         <DialogActions sx={{ p: 3, pt: 1 }}>
-          <Button onClick={() => setOpen(false)} sx={{ color: "text.secondary" }}>
+          <Button
+            onClick={() => setOpen(false)}
+            sx={{ color: "text.secondary" }}
+          >
             Cancel
           </Button>
           <Button

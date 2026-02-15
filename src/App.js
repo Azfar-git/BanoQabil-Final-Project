@@ -20,30 +20,18 @@ const Dashboard = lazy(() => import("./pages/Main/Dashboard"));
 const ToDoPage = lazy(() => import("./pages/Main/ToDo"));
 const CalendarPage = lazy(() => import("./pages/Main/CalendarPage"));
 const NotificationsPage = lazy(() => import("./pages/Main/Notifications"));
-const Classroom = lazy(() => import("./pages/Classroom/Classroom")); // Layout component
+const Classroom = lazy(() => import("./pages/Classroom/Classroom"));
 const ClassroomStream = lazy(() => import("./pages/Classroom/ClassroomStream"));
 const ClassroomChat = lazy(() => import("./pages/Classroom/ClassroomChat"));
 const ClassroomPeople = lazy(() => import("./pages/Classroom/ClassroomPeople"));
-const AssignmentList = lazy(() => import("./pages/Assignment/AssignmentList"));
-const AssignmentDetail = lazy(
-  () => import("./pages/Assignment/AssignmentDetail"),
-);
-const SubmissionPage = lazy(() => import("./pages/Assignment/SubmissionPage"));
-const GradingPage = lazy(() => import("./pages/Assignment/GradingPage"));
-const GradebookView = lazy(() => import("./pages/Gradebook/GradebookView"));
-const GradebookSettings = lazy(
-  () => import("./pages/Gradebook/GradebookSettings"),
-);
-const StudentProgress = lazy(() => import("./pages/Gradebook/StudentProgress"));
+
+
+
+const GradesPage = lazy(() => import("./pages/Gradebook/Gradespage"));
 const ProfileSettings = lazy(() => import("./pages/Settings/ProfileSettings"));
 const AccountSettings = lazy(() => import("./pages/Settings/AccountSettings"));
-const NotificationSettings = lazy(
-  () => import("./pages/Settings/NotificationSettings"),
-);
-const ClassSettings = lazy(() => import("./pages/Settings/ClassSettings"));
-const UserManagement = lazy(() => import("./pages/Admin/UserManagement"));
-const ClassManagement = lazy(() => import("./pages/Admin/ClassManagement"));
-const Analytics = lazy(() => import("./pages/Admin/Analytics"));
+
+
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 function App() {
@@ -82,6 +70,7 @@ function App() {
                         path="/notifications"
                         element={<NotificationsPage />}
                       />
+
                       {/* Classroom nested routes */}
                       <Route path="/classroom/:id" element={<Classroom />}>
                         <Route
@@ -92,44 +81,16 @@ function App() {
                         <Route path="people" element={<ClassroomPeople />} />
                         <Route path="chat" element={<ClassroomChat />} />
                       </Route>
-                      <Route path="/assignments" element={<AssignmentList />} />
-                      <Route
-                        path="/assignments/:id"
-                        element={<AssignmentDetail />}
-                      />
-                      <Route
-                        path="/assignments/:id/submit"
-                        element={<SubmissionPage />}
-                      />
-                      <Route
-                        path="/assignments/:id/grade"
-                        element={<GradingPage />}
-                      />
-                      <Route path="/gradebook" element={<GradebookView />} />
-                      <Route
-                        path="/gradebook/settings"
-                        element={<GradebookSettings />}
-                      />
-                      <Route
-                        path="/gradebook/student/:id"
-                        element={<StudentProgress />}
-                      />
+
+                      {/* Grades (card view) - linked from sidebar */}
+                      <Route path="/grades" element={<GradesPage />} />
+
+                      {/* Settings */}
                       <Route path="/settings">
                         <Route path="profile" element={<ProfileSettings />} />
                         <Route path="account" element={<AccountSettings />} />
-                        <Route
-                          path="notifications"
-                          element={<NotificationSettings />}
-                        />
-                        <Route path="class/:id" element={<ClassSettings />} />
-                        <Route index element={<Navigate to="profile" />} />
                       </Route>
-                      <Route path="/admin">
-                        <Route path="users" element={<UserManagement />} />
-                        <Route path="classes" element={<ClassManagement />} />
-                        <Route path="analytics" element={<Analytics />} />
-                        <Route index element={<Navigate to="users" />} />
-                      </Route>
+
                     </Route>
                   </Route>
                   <Route path="/" element={<Navigate to="/dashboard" />} />

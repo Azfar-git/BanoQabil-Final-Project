@@ -2,6 +2,7 @@ export const mockUser = {
   id: 1,
   name: 'Alex Johnson',
   email: 'alex.johnson@student.edu',
+  // role: 'teacher',
   role: 'student',
   avatar: 'https://i.pravatar.cc/150?img=1',
   bio: 'Passionate about computer science and mathematics',

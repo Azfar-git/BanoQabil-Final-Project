@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
-import { useParams, NavLink, Outlet } from "react-router-dom";
+import { useParams, NavLink, Outlet, Navigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { db } from "../../firebase/config";
 import {
@@ -17,7 +17,7 @@ import {
   writeBatch,
   increment,
 } from "firebase/firestore";
-import { mockUser } from "../../data/mockData";
+import { useAuth } from "../../context/AuthContext"; // <-- import auth
 import { MapPin, Calendar, Clock, Users, Layout } from "lucide-react";
 
 const ClassroomContext = createContext(null);
@@ -25,6 +25,7 @@ export const useClassroom = () => useContext(ClassroomContext);
 
 const Classroom = ({ darkMode }) => {
   const { id } = useParams();
+  const { user, loading: authLoading } = useAuth(); // <-- get real user
 
   const theme = {
     bg: darkMode ? "bg-[#0f1117]" : "bg-[#f3f4f6]",
@@ -98,9 +99,8 @@ const Classroom = ({ darkMode }) => {
     return () => unsubChat();
   }, [id]);
 
-  // --- Handlers with batch writes ---
+  // --- Handlers (now use real user) ---
 
-  // studentObject must contain id, name, email
   const handleAddStudent = async (studentObject) => {
     if (!studentObject?.id) return;
     try {
@@ -122,8 +122,6 @@ const Classroom = ({ darkMode }) => {
     if (!studentId || !window.confirm("Remove this student from the class?"))
       return;
     try {
-      // We need the full object to remove it via arrayUnion/arrayRemove.
-      // Find the student object from current roster.
       const studentObj = roster.find((s) => s.id === studentId);
       if (!studentObj) return;
 
@@ -141,19 +139,17 @@ const Classroom = ({ darkMode }) => {
     }
   };
 
-  // Inside Classroom.jsx, replace the handleCreatePost function:
-
   const handleCreatePost = async (content, attachments, pinned, dueDate) => {
     if (!content.trim() && attachments.length === 0) return;
     try {
       const postRef = await addDoc(collection(db, "classes", id, "posts"), {
-        author: mockUser.name,
-        authorId: mockUser.id,
-        roleName: mockUser.role,
+        author: user.name,
+        authorId: user.id,
+        roleName: user.role,
         content,
         createdAt: serverTimestamp(),
         pinned,
-        dueDate: dueDate || null, // store due date if provided
+        dueDate: dueDate || null,
         likes: [],
         comments: [],
         submissions: [],
@@ -161,7 +157,6 @@ const Classroom = ({ darkMode }) => {
       });
       console.log("✅ Post created:", postRef.id);
 
-      // Notifications (same as before, but we can optionally include due date in message)
       if (
         classData?.students &&
         Array.isArray(classData.students) &&
@@ -176,8 +171,8 @@ const Classroom = ({ darkMode }) => {
         const allRecipients = [
           ...classData.students.map((s) => (typeof s === "object" ? s.id : s)),
         ];
-        if (!allRecipients.includes(mockUser.id)) {
-          allRecipients.push(mockUser.id);
+        if (!allRecipients.includes(user.id)) {
+          allRecipients.push(user.id);
         }
 
         allRecipients.forEach((recipientId) => {
@@ -185,7 +180,7 @@ const Classroom = ({ darkMode }) => {
           if (!userIdStr) return;
 
           let title, message;
-          if (userIdStr === String(mockUser.id)) {
+          if (userIdStr === String(user.id)) {
             title = `You posted in ${classTitle}`;
             message = `Your post: ${trimmedContent}`;
           } else {
@@ -236,9 +231,9 @@ const Classroom = ({ darkMode }) => {
   };
 
   const handleToggleLike = async (postId, likes = []) => {
-    const hasLiked = likes.includes(mockUser.id);
+    const hasLiked = likes.includes(user.id);
     await updateDoc(doc(db, "classes", id, "posts", postId), {
-      likes: hasLiked ? arrayRemove(mockUser.id) : arrayUnion(mockUser.id),
+      likes: hasLiked ? arrayRemove(user.id) : arrayUnion(user.id),
     });
   };
 
@@ -247,8 +242,8 @@ const Classroom = ({ darkMode }) => {
     await updateDoc(doc(db, "classes", id, "posts", postId), {
       comments: arrayUnion({
         id: Date.now().toString(),
-        userId: mockUser.id,
-        userName: mockUser.name,
+        userId: user.id,
+        userName: user.name,
         text: commentText,
         timestamp: new Date().toISOString(),
       }),
@@ -258,8 +253,8 @@ const Classroom = ({ darkMode }) => {
   const handleSubmitWork = async (postId, submissionFiles) => {
     await updateDoc(doc(db, "classes", id, "posts", postId), {
       submissions: arrayUnion({
-        studentId: mockUser.id,
-        studentName: mockUser.name,
+        studentId: user.id,
+        studentName: user.name,
         attachments: submissionFiles,
         submittedAt: new Date().toISOString(),
         grade: null,
@@ -279,23 +274,23 @@ const Classroom = ({ darkMode }) => {
   const handleSendMessage = async (text) => {
     if (!text.trim()) return;
     await addDoc(collection(db, "classes", id, "chat"), {
-      userId: mockUser.id,
-      userName: mockUser.name,
-      userRole: mockUser.role,
+      userId: user.id,
+      userName: user.name,
+      userRole: user.role,
       text,
       timestamp: serverTimestamp(),
     });
   };
 
-  const isTeacher = mockUser.role === "teacher";
-  const isSupervisor = mockUser.role === "supervisor";
+  const isTeacher = user?.role === "teacher";
+  const isSupervisor = user?.role === "supervisor";
 
   const value = {
     classData,
     posts,
-    roster, // now full objects
+    roster,
     messages,
-    mockUser,
+    mockUser: user, // <-- pass real user as mockUser for compatibility
     theme,
     classId: id,
     canPost: isTeacher,
@@ -314,7 +309,7 @@ const Classroom = ({ darkMode }) => {
     },
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className={`h-screen flex items-center justify-center ${theme.bg}`}>
         <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full" />
@@ -322,8 +317,14 @@ const Classroom = ({ darkMode }) => {
     );
   }
 
+  if (!user) {
+    // Should not happen because route is protected, but just in case
+    return <Navigate to="/NotFound" replace />;
+  }
+
   return (
     <ClassroomContext.Provider value={value}>
+      {/* ... rest of the component remains unchanged ... */}
       <div className={`min-h-screen ${theme.bg} ${theme.textPrimary}`}>
         {/* Banner */}
         <div className="relative h-64 md:h-72 w-full overflow-hidden shadow-lg">
@@ -347,7 +348,7 @@ const Classroom = ({ darkMode }) => {
                 <Calendar size={16} /> {classData?.semester || "Spring 2026"}
               </span>
               <span className="flex items-center gap-2">
-                <Clock size={16} /> {classData?.schedule}
+                <Clock size={16} /> {classData?.timing}
               </span>
             </div>
           </div>
